@@ -1,0 +1,39 @@
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(45, 212, 191, 0.72) rgba(10, 24, 28, 0.4);
+}
+
+.messageList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messageList::-webkit-scrollbar-track {
+  background: rgba(10, 24, 28, 0.35);
+  border-radius: 999px;
+}
+
+.messageList::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(45, 212, 191, 0.92) 0%,
+    rgba(13, 148, 136, 0.92) 100%
+  );
+  border-radius: 999px;
+  border: 1px solid rgba(6, 12, 16, 0.5);
+}
+
+.messageList::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(94, 234, 212, 0.95) 0%,
+    rgba(20, 184, 166, 0.95) 100%
+  );
+}

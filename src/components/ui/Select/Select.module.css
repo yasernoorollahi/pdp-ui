@@ -1,0 +1,61 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.selectWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.65rem 2.4rem 0.65rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border-glass);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.select option {
+  background: #0b1520;
+  color: var(--color-text-primary);
+}
+
+.select:focus {
+  border-color: var(--color-teal-35);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.07);
+}
+
+.select:hover:not(:focus) {
+  border-color: var(--color-teal-20);
+}
+
+.chevron {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.select:focus ~ .chevron {
+  color: var(--color-teal);
+}

@@ -1,0 +1,837 @@
+/* ============================================
+   HOME PAGE MODULE
+   ============================================ */
+
+.homePage {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  overflow-x: hidden;
+  background: var(--color-bg-gradient);
+}
+
+/* ============================================
+   ANIMATED BACKGROUND
+   ============================================ */
+.homeBg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.homeBg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 60% 55% at 75% 8%,
+      rgba(13, 148, 136, 0.45) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 50% 50% at 15% 85%,
+      rgba(45, 212, 191, 0.2) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 35% 40% at 50% 50%,
+      rgba(52, 211, 153, 0.08) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 90% 65%,
+      rgba(16, 185, 129, 0.15) 0%,
+      transparent 55%
+    );
+}
+
+.homeBg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(45, 212, 191, 0.04) 1px,
+    transparent 0
+  );
+  background-size: 42px 42px;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: orbFloat 12s ease-in-out infinite;
+}
+
+.orb1 {
+  width: 500px;
+  height: 500px;
+  top: -60px;
+  right: -60px;
+  background: radial-gradient(
+    circle,
+    rgba(13, 148, 136, 0.4) 0%,
+    transparent 70%
+  );
+  animation-delay: 0s;
+}
+
+.orb2 {
+  width: 350px;
+  height: 350px;
+  bottom: -30px;
+  left: -30px;
+  background: radial-gradient(
+    circle,
+    rgba(45, 212, 191, 0.25) 0%,
+    transparent 70%
+  );
+  animation-delay: -4s;
+}
+
+.orb3 {
+  width: 250px;
+  height: 250px;
+  top: 40%;
+  left: 20%;
+  background: radial-gradient(
+    circle,
+    rgba(52, 211, 153, 0.15) 0%,
+    transparent 70%
+  );
+  animation-delay: -8s;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.heroSection {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 10rem 2rem 5rem;
+  max-width: 900px;
+  width: 100%;
+  animation: fadeInUp 0.9s ease both;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  border-radius: 100px;
+  padding: 0.35rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--teal);
+  letter-spacing: 0.08em;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(8px);
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal);
+  animation: pulse 2s infinite;
+}
+
+.heroTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 1.2rem;
+  line-height: 1.08;
+  text-shadow: 0 2px 60px rgba(0, 0, 0, 0.5);
+}
+
+.accent {
+  color: var(--teal);
+  position: relative;
+}
+
+.heroSubtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 300;
+  color: var(--text-secondary);
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.heroDescription {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.heroStatRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.heroStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.statNumber {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--teal);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statDivider {
+  width: 1px;
+  height: 40px;
+  background: var(--border-subtle);
+}
+
+/* ============================================
+   FEATURES SECTION
+   ============================================ */
+.featuresSection {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1100px;
+  padding: 2rem 2rem 4rem;
+  animation: fadeInUp 0.9s 0.2s ease both;
+}
+
+.sectionLabel {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.8rem;
+  letter-spacing: -0.01em;
+}
+
+.sectionSubtitle {
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  max-width: 520px;
+  margin: 0 auto 3rem;
+  line-height: 1.8;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ---- Feature cards ---- */
+.featureCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  padding: 1.8rem;
+  border-radius: 18px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  cursor: pointer;
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.cardTeal {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(13, 148, 136, 0.06) 50%,
+    rgba(45, 212, 191, 0.1) 100%
+  );
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  box-shadow:
+    0 4px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.cardEmerald {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(52, 211, 153, 0.06) 50%,
+    rgba(16, 185, 129, 0.1) 100%
+  );
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  box-shadow:
+    0 4px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.cardGold {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(245, 158, 11, 0.06) 50%,
+    rgba(245, 158, 11, 0.1) 100%
+  );
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  box-shadow:
+    0 4px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+}
+
+.cardTeal:hover {
+  box-shadow:
+    0 16px 50px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+.cardEmerald:hover {
+  box-shadow:
+    0 16px 50px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.cardGold:hover {
+  box-shadow:
+    0 16px 50px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.cardGlow {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.cardTeal .cardGlow {
+  background: radial-gradient(
+    ellipse,
+    rgba(45, 212, 191, 0.2),
+    transparent 70%
+  );
+}
+
+.cardEmerald .cardGlow {
+  background: radial-gradient(
+    ellipse,
+    rgba(52, 211, 153, 0.2),
+    transparent 70%
+  );
+}
+
+.cardGold .cardGlow {
+  background: radial-gradient(
+    ellipse,
+    rgba(245, 158, 11, 0.2),
+    transparent 70%
+  );
+}
+
+.cardIcon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cardTeal .cardIcon {
+  color: var(--teal);
+}
+.cardEmerald .cardIcon {
+  color: var(--emerald);
+}
+.cardGold .cardIcon {
+  color: var(--gold);
+}
+
+.cardIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.cardTitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.cardDesc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.cardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-top: 0.4rem;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.cardTeal .cardLink {
+  color: var(--teal);
+}
+.cardEmerald .cardLink {
+  color: var(--emerald);
+}
+.cardGold .cardLink {
+  color: var(--gold);
+}
+
+.featureCard:hover .cardLink {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ============================================
+   HOW IT WORKS SECTION
+   ============================================ */
+.howSection {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 960px;
+  padding: 2rem 2rem 5rem;
+  animation: fadeInUp 0.9s 0.3s ease both;
+}
+
+.stepsRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  min-width: 160px;
+  max-width: 220px;
+  padding: 1.5rem 1rem;
+  position: relative;
+}
+
+.stepItem:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 2.8rem;
+  width: 2px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--teal-deep), transparent);
+}
+
+.stepNumber {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  margin-bottom: 1rem;
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.1);
+}
+
+.stepTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.stepDesc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+/* ============================================
+   QUOTE SECTION
+   ============================================ */
+.quoteSection {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem 2rem 4rem;
+  animation: fadeInUp 0.9s 0.4s ease both;
+}
+
+.quoteCard {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(45, 212, 191, 0.06)
+  );
+  border: 1px solid var(--border-glass);
+  border-radius: 20px;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  backdrop-filter: blur(24px);
+  position: relative;
+  overflow: hidden;
+}
+
+.quoteIcon {
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--teal);
+  opacity: 0.25;
+  font-family: 'Playfair Display', serif;
+  position: absolute;
+  top: 1rem;
+  left: 1.8rem;
+  user-select: none;
+}
+
+.quoteText {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.quoteAuthor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.authorAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal-deep), var(--emerald));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #060c10;
+}
+
+.authorInfo {
+  text-align: left;
+}
+
+.authorName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.authorRole {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ============================================
+   CTA SECTION
+   ============================================ */
+.ctaSection {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+  max-width: 700px;
+  padding: 2rem 2rem 6rem;
+  animation: fadeInUp 1s 0.5s ease both;
+}
+
+.ctaCard {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(13, 148, 136, 0.08)
+  );
+  border: 1px solid var(--border-glass);
+  border-radius: 24px;
+  padding: 3.5rem 3rem;
+  backdrop-filter: blur(24px);
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--teal), transparent);
+}
+
+.ctaTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.8rem;
+  line-height: 1.2;
+}
+
+.ctaText {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  letter-spacing: 0.03em;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+.ctaButton {
+  background: linear-gradient(135deg, var(--teal-deep), var(--teal));
+  color: #060c10;
+  border: none;
+  padding: 0.95rem 3.5rem;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 30px rgba(45, 212, 191, 0.3);
+  text-transform: uppercase;
+}
+
+.ctaButton:hover {
+  background: linear-gradient(135deg, var(--teal), var(--emerald));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(45, 212, 191, 0.45);
+}
+
+.ctaSecondaryBtn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 0.95rem 2.5rem;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.25s;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.ctaSecondaryBtn:hover {
+  border-color: var(--teal-deep);
+  color: var(--teal);
+  background: var(--teal-muted);
+}
+
+.ctaNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1.2rem;
+  letter-spacing: 0.04em;
+}
+
+.ctaButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   ANIMATIONS (referenced from global.css)
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes orbFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.05);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 6px var(--teal);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 12px var(--teal);
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+  .heroSection {
+    padding: 8rem 1.5rem 3rem;
+  }
+  .featuresSection,
+  .howSection,
+  .quoteSection,
+  .ctaSection {
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+  }
+  .stepsRow {
+    flex-direction: column;
+    align-items: center;
+  }
+  .stepItem::after {
+    display: none;
+  }
+  .quoteCard {
+    padding: 2rem 1.5rem;
+  }
+  .ctaCard {
+    padding: 2.5rem 1.5rem;
+  }
+  .heroStatRow {
+    gap: 1.5rem;
+  }
+  .statDivider {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ctaButton,
+  .ctaSecondaryBtn {
+    width: 100%;
+    text-align: center;
+  }
+}

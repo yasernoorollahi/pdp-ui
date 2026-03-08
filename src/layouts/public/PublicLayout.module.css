@@ -1,0 +1,166 @@
+/* ============================================
+   PUBLIC LAYOUT MODULE
+   ============================================ */
+
+.publicLayout {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-gradient);
+  position: relative;
+}
+
+/* ============================================
+   TOP NAVIGATION
+   ============================================ */
+.topNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 3rem;
+  background: rgba(6, 12, 16, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.navLogo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  gap: 2.2rem;
+  align-items: center;
+}
+
+.navLink {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  transition: color 0.25s;
+  position: relative;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+}
+
+.navLinkActive {
+  color: var(--teal);
+  font-weight: 500;
+}
+
+.navLinkActive::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--teal);
+  border-radius: 2px;
+}
+
+.loginBtn {
+  background: transparent;
+  color: var(--teal);
+  border: 1px solid var(--teal-deep);
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  display: inline-block;
+  line-height: 1.5;
+  backdrop-filter: blur(8px);
+}
+
+.loginBtn:hover {
+  background: var(--teal-muted);
+  border-color: var(--teal);
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.siteFooter {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.5);
+  border-top: 1px solid var(--border-glass);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.footerLink {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+
+.footerLink:hover {
+  color: var(--teal);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .topNav {
+    padding: 0.9rem 1.4rem;
+  }
+  .navLinks {
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navLinks {
+    gap: 0.8rem;
+    font-size: 0.82rem;
+  }
+}

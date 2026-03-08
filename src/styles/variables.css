@@ -1,0 +1,89 @@
+/* ============================================
+   CSS VARIABLES — Single source of truth
+   No hardcoded colors allowed outside this file
+   ============================================ */
+:root {
+  /* Brand */
+  --color-teal:           #2dd4bf;
+  --color-teal-deep:      #0d9488;
+  --color-teal-muted:     rgba(45, 212, 191, 0.18);
+  --color-teal-10:        rgba(45, 212, 191, 0.1);
+  --color-teal-12:        rgba(45, 212, 191, 0.12);
+  --color-teal-15:        rgba(45, 212, 191, 0.15);
+  --color-teal-18:        rgba(45, 212, 191, 0.18);
+  --color-teal-20:        rgba(45, 212, 191, 0.2);
+  --color-teal-35:        rgba(45, 212, 191, 0.35);
+
+  --color-emerald:        #34d399;
+  --color-emerald-10:     rgba(52, 211, 153, 0.1);
+  --color-emerald-15:     rgba(52, 211, 153, 0.15);
+  --color-emerald-18:     rgba(52, 211, 153, 0.18);
+  --color-emerald-20:     rgba(52, 211, 153, 0.2);
+
+  --color-gold:           #f59e0b;
+  --color-gold-light:     #fcd34d;
+  --color-gold-10:        rgba(245, 158, 11, 0.1);
+  --color-gold-18:        rgba(245, 158, 11, 0.18);
+
+  --color-red:            #ef4444;
+  --color-red-dark:       #dc2626;
+  --color-red-light:      #fca5a5;
+  --color-red-06:         rgba(239, 68, 68, 0.06);
+  --color-red-07:         rgba(239, 68, 68, 0.07);
+  --color-red-08:         rgba(239, 68, 68, 0.08);
+  --color-red-10:         rgba(239, 68, 68, 0.1);
+  --color-red-12:         rgba(239, 68, 68, 0.12);
+  --color-red-15:         rgba(239, 68, 68, 0.15);
+  --color-red-20:         rgba(239, 68, 68, 0.2);
+  --color-red-25:         rgba(239, 68, 68, 0.25);
+
+  /* Backgrounds */
+  --color-bg:             #060c10;
+  --color-bg-soft:        #0a151a;
+  --color-bg-soft-2:      #0f1d24;
+  --color-surface:        #0b1520;
+  --color-glass:          rgba(17, 24, 39, 0.6);
+  --color-glass-dark:     rgba(9, 18, 28, 0.96);
+  --color-glass-panel:    rgba(6, 12, 16, 0.75);
+  --color-glass-overlay:  rgba(6, 12, 16, 0.6);
+  --color-bg-gradient:
+    radial-gradient(120% 95% at 82% 8%, rgba(13, 148, 136, 0.28) 0%, transparent 58%),
+    radial-gradient(95% 90% at 10% 88%, rgba(45, 212, 191, 0.2) 0%, transparent 56%),
+    linear-gradient(160deg, var(--color-bg-soft) 0%, var(--color-bg-soft-2) 52%, #11242b 100%);
+
+  /* Text */
+  --color-text-primary:   #e8f5f3;
+  --color-text-secondary: rgba(232, 245, 243, 0.75);
+  --color-text-muted:     rgba(232, 245, 243, 0.45);
+  --color-text-white:     #f1f5f9;
+  --color-text-slate:     #94a3b8;
+  --color-text-slate-dim: #64748b;
+
+  /* Borders */
+  --color-border-glass:   rgba(45, 212, 191, 0.15);
+  --color-border-subtle:  rgba(255, 255, 255, 0.07);
+  --color-border-faint:   rgba(255, 255, 255, 0.04);
+
+  /* Glows */
+  --color-glow-teal:      rgba(45, 212, 191, 0.25);
+  --color-glow-emerald:   rgba(52, 211, 153, 0.2);
+  --color-glow-red:       rgba(239, 68, 68, 0.6);
+
+  /* Legacy aliases for modules still using older token names */
+  --teal: var(--color-teal);
+  --teal-deep: var(--color-teal-deep);
+  --teal-muted: var(--color-teal-muted);
+  --emerald: var(--color-emerald);
+  --gold: var(--color-gold);
+  --gold-light: var(--color-gold-light);
+  --dark-bg: var(--color-bg);
+  --dark-surface: var(--color-surface);
+  --dark-card: var(--color-glass);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --border-glass: var(--color-border-glass);
+  --border-subtle: var(--color-border-subtle);
+  --glow-teal: var(--color-glow-teal);
+  --glow-emerald: var(--color-glow-emerald);
+}

@@ -1,0 +1,120 @@
+/* ═══════════════════════════════════════════════
+   RiskBadge — uses CSS variables from variables.css
+   ═══════════════════════════════════════════════ */
+
+/* ── Pill (compact) ──────────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 100px;
+  padding: 0.2rem 0.6rem;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+
+.pillDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ── Bar (detailed) ──────────────────────────── */
+.barWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.barHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.barLabel {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.barScore {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Playfair Display', serif;
+}
+
+.track {
+  height: 5px;
+  border-radius: 100px;
+  background: var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.levelLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Level variants ──────────────────────────── */
+.low {
+  color: var(--color-emerald);
+  border-color: var(--color-emerald-20);
+  background: var(--color-emerald-10);
+}
+.low.fill {
+  background: var(--color-emerald);
+  box-shadow: 0 0 8px var(--color-emerald-20);
+}
+.low.barScore  { color: var(--color-emerald); }
+.low.levelLabel { color: var(--color-emerald); }
+
+.medium {
+  color: var(--color-gold);
+  border-color: var(--color-gold-18);
+  background: var(--color-gold-10);
+}
+.medium.fill {
+  background: var(--color-gold);
+  box-shadow: 0 0 8px var(--color-gold-10);
+}
+.medium.barScore  { color: var(--color-gold); }
+.medium.levelLabel { color: var(--color-gold); }
+
+.high {
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.25);
+  background: rgba(251, 146, 60, 0.1);
+}
+.high.fill {
+  background: #fb923c;
+  box-shadow: 0 0 8px rgba(251, 146, 60, 0.25);
+}
+.high.barScore  { color: #fb923c; }
+.high.levelLabel { color: #fb923c; }
+
+.critical {
+  color: var(--color-red-light);
+  border-color: var(--color-red-25);
+  background: var(--color-red-10);
+}
+.critical.fill {
+  background: var(--color-red);
+  box-shadow: 0 0 8px var(--color-red-20);
+}
+.critical.barScore  { color: var(--color-red-light); }
+.critical.levelLabel { color: var(--color-red-light); }

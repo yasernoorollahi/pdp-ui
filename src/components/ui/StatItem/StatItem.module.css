@@ -1,0 +1,93 @@
+.card {
+  border-radius: 16px;
+  padding: 1.4rem 1.5rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.teal {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(13,148,136,0.08), rgba(45,212,191,0.1));
+  border: 1px solid var(--color-teal-18);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+.red {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), var(--color-red-07), rgba(220,38,38,0.1));
+  border: 1px solid var(--color-red-20);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+.gold {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), var(--color-gold-10), var(--color-gold-10));
+  border: 1px solid var(--color-gold-18);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+.emerald {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), var(--color-emerald-10), rgba(16,185,129,0.1));
+  border: 1px solid var(--color-emerald-18);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+
+.glow {
+  position: absolute;
+  right: -15px;
+  bottom: -15px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.teal .glow { background: radial-gradient(ellipse, rgba(45,212,191,0.18), transparent 70%); }
+.red .glow  { background: radial-gradient(ellipse, rgba(239,68,68,0.18), transparent 70%); }
+.gold .glow { background: radial-gradient(ellipse, rgba(245,158,11,0.18), transparent 70%); }
+.emerald .glow { background: radial-gradient(ellipse, rgba(52,211,153,0.18), transparent 70%); }
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+}
+.teal .icon   { color: var(--color-teal); }
+.red .icon    { color: var(--color-red-light); }
+.gold .icon   { color: var(--color-gold); }
+.emerald .icon { color: var(--color-emerald); }
+
+.value {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  font-weight: 300;
+}
+
+.change {
+  font-size: 0.72rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.up      { color: var(--color-emerald); }
+.down    { color: var(--color-red-light); }
+.neutral { color: var(--color-text-muted); }

@@ -1,0 +1,43 @@
+.skeletonWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.leftRow,
+.rightRow {
+  display: flex;
+}
+
+.leftRow {
+  justify-content: flex-start;
+}
+
+.rightRow {
+  justify-content: flex-end;
+}
+
+.shortLine,
+.mediumLine,
+.longLine {
+  width: 12rem;
+  height: 2.6rem !important;
+  border-radius: 14px !important;
+}
+
+.mediumLine {
+  width: 17rem;
+}
+
+.longLine {
+  width: 20rem;
+}
+
+@media (max-width: 680px) {
+  .shortLine,
+  .mediumLine,
+  .longLine {
+    width: min(72vw, 18rem);
+  }
+}
