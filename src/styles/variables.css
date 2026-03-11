@@ -19,11 +19,25 @@
   --color-emerald-15:     rgba(52, 211, 153, 0.15);
   --color-emerald-18:     rgba(52, 211, 153, 0.18);
   --color-emerald-20:     rgba(52, 211, 153, 0.2);
+  --color-emerald-35:     rgba(52, 211, 153, 0.35);
+
+  --color-blue:           #60a5fa;
+  --color-blue-10:        rgba(96, 165, 250, 0.1);
+  --color-blue-20:        rgba(96, 165, 250, 0.2);
+  --color-blue-35:        rgba(96, 165, 250, 0.35);
+  --color-blue-60:        rgba(96, 165, 250, 0.6);
+
+  --color-purple:         #c084fc;
+  --color-purple-10:      rgba(192, 132, 252, 0.1);
+  --color-purple-20:      rgba(192, 132, 252, 0.2);
+  --color-purple-35:      rgba(192, 132, 252, 0.35);
+  --color-purple-60:      rgba(192, 132, 252, 0.6);
 
   --color-gold:           #f59e0b;
   --color-gold-light:     #fcd34d;
   --color-gold-10:        rgba(245, 158, 11, 0.1);
   --color-gold-18:        rgba(245, 158, 11, 0.18);
+  --color-gold-35:        rgba(245, 158, 11, 0.35);
 
   --color-red:            #ef4444;
   --color-red-dark:       #dc2626;

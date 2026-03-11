@@ -28,6 +28,7 @@ export default function AppRouter() {
           <Route element={<UserLayout />}>
             <Route path="/app" element={<UserDashboard />} />
             <Route path="/app/chat" element={<UserDashboard />} />
+            <Route path="/app/insights" element={<UserDashboard />} />
           </Route>
         </Route>
 

@@ -1,6 +1,7 @@
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UserChatPanel } from '../../../features/chat/components/UserChatPanel';
+import { InsightsPage } from '../../insights/pages/InsightsPage';
 import styles from './UserDashboard.module.css';
 
 const navItems = [
@@ -38,6 +39,24 @@ const navItems = [
         height="18"
       >
         <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Insights',
+    path: '/app/insights',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <path d="M3 3v18h18" />
+        <path d="M7 15l4-6 4 3 5-7" />
       </svg>
     ),
   },
@@ -285,6 +304,7 @@ export const UserDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isChatRoute = location.pathname === '/app/chat';
+  const isInsightsRoute = location.pathname === '/app/insights';
 
   const initials = getInitials(user?.email ?? '');
 
@@ -350,9 +370,9 @@ export const UserDashboard = () => {
         {/* Topbar */}
         <header className={styles.topbar}>
           <div className={styles.topbarLeft}>
-            <h1 className={styles.pageTitle}>{isChatRoute ? 'Chat' : 'Overview'}</h1>
+            <h1 className={styles.pageTitle}>{isChatRoute ? 'Chat' : isInsightsRoute ? 'Insights' : 'Overview'}</h1>
             <span className={styles.pageBreadcrumb}>
-              {isChatRoute ? 'Dashboard · User Chat' : 'Dashboard · Personal Data Platform'}
+              {isChatRoute ? 'Dashboard · User Chat' : isInsightsRoute ? 'Dashboard · Insights' : 'Dashboard · Personal Data Platform'}
             </span>
           </div>
           <div className={styles.topbarRight}>
@@ -409,8 +429,9 @@ export const UserDashboard = () => {
         {/* Content */}
         <div className={styles.content}>
           {isChatRoute ? <UserChatPanel /> : null}
+          {isInsightsRoute ? <InsightsPage /> : null}
 
-          {!isChatRoute ? (
+          {!isChatRoute && !isInsightsRoute ? (
             <>
               {/* Welcome banner */}
               <div className={styles.welcomeBanner}>
