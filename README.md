@@ -134,6 +134,11 @@ npm run preview  # preview production build
 ### User Dashboard
 ![User Dashboard](docs/screenshots/user-dashboard.png)
 
+### Insights
+![Insights 1](docs/screenshots/insight-1.png)
+![Insights 2](docs/screenshots/insight-2.png)
+![Insights 3](docs/screenshots/insight-3.png)
+
 ### Chat
 ![Chat](docs/screenshots/chat.png)
 
