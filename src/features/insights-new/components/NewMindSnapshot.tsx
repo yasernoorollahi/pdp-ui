@@ -1,42 +1,19 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
-import type { MindSnapshot as MindSnapshotData } from '../../../services/insights.service';
+import type { TimelinePoint } from '../../../services/insights.service';
 import { ResponsiveBar } from '@nivo/bar';
+import { SIGNAL_COLORS, clamp01, interpretationText } from '../utils/signalUtils';
 import styles from './NewMindSnapshot.module.css';
 
 type NewMindSnapshotProps = {
-  data: MindSnapshotData | null;
+  data: TimelinePoint[] | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
 };
 
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
-const scoreLabel = (value: number) => {
-  if (value >= 0.75) return 'High';
-  if (value >= 0.5) return 'Steady';
-  if (value >= 0.25) return 'Low';
-  return 'Very Low';
-};
-
-const frictionLabel = (value: number) => {
-  if (value <= 0.5) return 'Low';
-  if (value <= 0.7) return 'Moderate';
-  return 'High';
-};
-
-const socialLabel = (value: number) => {
-  if (value >= 0.75) return 'Active';
-  if (value >= 0.5) return 'Present';
-  if (value >= 0.25) return 'Quiet';
-  return 'Silent';
-};
-
-const disciplineLabel = (value: number) => {
-  if (value >= 0.75) return 'Strong';
-  if (value >= 0.5) return 'Steady';
-  if (value >= 0.25) return 'Wavering';
-  return 'Low';
+const average = (values: number[]) => {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 };
 
 export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapshotProps) => {
@@ -46,7 +23,7 @@ export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapsh
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Mind Snapshot</p>
-            <h3 className={styles.title}>Today at a glance</h3>
+            <h3 className={styles.title}>15-day signal averages</h3>
           </div>
         </div>
         <Skeleton count={4} className={styles.skeletonLine} />
@@ -60,11 +37,11 @@ export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapsh
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Mind Snapshot</p>
-            <h3 className={styles.title}>Today at a glance</h3>
+            <h3 className={styles.title}>15-day signal averages</h3>
           </div>
         </div>
         <div className={styles.stateBlock}>
-          <p className={styles.stateTitle}>We couldn’t load today’s snapshot.</p>
+          <p className={styles.stateTitle}>We couldn’t load your snapshot.</p>
           <p className={styles.stateHint}>{error}</p>
           <Button variant="teal" onClick={onRetry}>Try again</Button>
         </div>
@@ -72,65 +49,61 @@ export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapsh
     );
   }
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return (
       <Card className={`${styles.card} glassCard`}>
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Mind Snapshot</p>
-            <h3 className={styles.title}>Today at a glance</h3>
+            <h3 className={styles.title}>15-day signal averages</h3>
           </div>
         </div>
         <div className={styles.stateBlock}>
           <p className={styles.stateTitle}>No snapshot yet.</p>
-          <p className={styles.stateHint}>Come back after a few signals are logged.</p>
+          <p className={styles.stateHint}>Collect a few days of signals to populate this view.</p>
         </div>
       </Card>
     );
   }
 
-  const energyScore = clamp01(data.energy);
-  const motivationScore = clamp01(data.motivation);
-  const frictionScore = clamp01(data.friction / 4);
-  const socialScore = clamp01(data.social / 4);
-  const disciplineScore = clamp01(data.discipline / 4);
+  const disciplineMax = Math.max(...data.map((item) => item.discipline), 1);
 
-  const chartData = [
+  const metrics = [
     {
-      metric: 'Energy',
-      value: energyScore * 100,
-      label: scoreLabel(energyScore),
+      metric: 'Discipline',
+      signal: 'discipline' as const,
+      value: clamp01(average(data.map((item) => item.discipline / disciplineMax))),
+      color: SIGNAL_COLORS.discipline,
     },
     {
       metric: 'Motivation',
-      value: motivationScore * 100,
-      label: scoreLabel(motivationScore),
+      signal: 'motivation' as const,
+      value: clamp01(average(data.map((item) => item.motivation))),
+      color: SIGNAL_COLORS.motivation,
     },
     {
-      metric: 'Friction',
-      value: frictionScore * 100,
-      label: frictionLabel(frictionScore),
-    },
-    {
-      metric: 'Social',
-      value: socialScore * 100,
-      label: socialLabel(socialScore),
-    },
-    {
-      metric: 'Discipline',
-      value: disciplineScore * 100,
-      label: disciplineLabel(disciplineScore),
+      metric: 'Energy',
+      signal: 'energy' as const,
+      value: clamp01(average(data.map((item) => item.energy))),
+      color: SIGNAL_COLORS.energy,
     },
   ];
+
+  const chartData = metrics.map((item) => ({
+    metric: item.metric,
+    value: Math.round(item.value * 100),
+    color: item.color,
+    signal: item.signal,
+  }));
 
   return (
     <Card className={`${styles.card} glassCard`}>
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Mind Snapshot</p>
-          <h3 className={styles.title}>Today at a glance</h3>
+          <h3 className={styles.title}>15-day signal averages</h3>
         </div>
-        <div className={styles.headerNote}>Signals distilled from your day.</div>
+        <div className={styles.headerNote}>Average signal over last 15 days.</div>
       </div>
 
       <div className={styles.chartWrap}>
@@ -139,11 +112,12 @@ export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapsh
           keys={['value']}
           indexBy="metric"
           layout="horizontal"
-          margin={{ top: 10, right: 40, bottom: 10, left: 90 }}
+          margin={{ top: 10, right: 40, bottom: 10, left: 110 }}
           padding={0.4}
-          colors={['#2dd4bf', '#34d399', '#fcd34d', '#60a5fa', '#c084fc']}
-          borderRadius={6}
-          enableGridX={false}
+          colors={(bar) => String(bar.data.color)}
+          borderRadius={8}
+          maxValue={100}
+          enableGridX
           enableGridY={false}
           axisBottom={null}
           axisLeft={{
@@ -151,40 +125,49 @@ export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapsh
             tickPadding: 12,
             tickRotation: 0,
           }}
-          enableLabel
-          label={(d) => String((d.data as { label?: string }).label ?? '')}
+          label={(d) => `${d.value}%`}
           labelSkipWidth={10}
-          labelTextColor="#e8f5f3"
+          labelTextColor="#f8fafc"
           tooltip={(datum) => (
             <div className={styles.tooltip}>
               <span className={styles.tooltipLabel}>{datum.indexValue}</span>
-              <span className={styles.tooltipValue}>{(datum.data as { label?: string }).label}</span>
+              <span className={styles.tooltipValue}>{datum.value}%</span>
+              <span className={styles.tooltipHint}>Average signal over last 15 days</span>
+              <span className={styles.tooltipHint}>Interpretation: {interpretationText((datum.data as { signal: 'energy' | 'motivation' | 'discipline' }).signal, (datum.value as number) / 100)}</span>
             </div>
           )}
           theme={{
             text: {
-              fill: '#e8f5f3',
-              fontSize: 11,
+              fill: '#e2e8f0',
+              fontSize: 12,
             },
             axis: {
               ticks: {
                 text: {
-                  fill: '#94a3b8',
+                  fill: 'rgba(148, 163, 184, 0.9)',
                   fontSize: 12,
                 },
               },
             },
+            grid: {
+              line: {
+                stroke: 'rgba(148, 163, 184, 0.12)',
+                strokeWidth: 1,
+              },
+            },
             tooltip: {
               container: {
-                background: 'rgba(6, 12, 16, 0.9)',
+                background: 'rgba(6, 12, 16, 0.92)',
                 color: '#e8f5f3',
                 fontSize: 12,
-                borderRadius: 8,
-                border: '1px solid rgba(45, 212, 191, 0.2)',
-                padding: '6px 10px',
+                borderRadius: 10,
+                border: '1px solid rgba(0, 229, 255, 0.25)',
+                padding: '8px 12px',
               },
             },
           }}
+          animate
+          motionConfig="gentle"
         />
       </div>
     </Card>

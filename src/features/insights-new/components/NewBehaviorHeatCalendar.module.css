@@ -1,8 +1,10 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
+  min-height: 260px;
   animation: cardIn 0.5s ease both;
+  border: 1px solid rgba(0, 229, 255, 0.12);
 }
 
 .header {
@@ -16,27 +18,44 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--color-text-muted);
+  color: rgba(148, 163, 184, 0.9);
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: var(--color-text-white);
+  color: #f8fafc;
   margin-top: 0.35rem;
 }
 
 .headerNote {
   font-size: 0.75rem;
-  color: var(--color-text-slate);
-  background: rgba(17, 24, 39, 0.6);
-  border: 1px solid var(--color-border-subtle);
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
+  color: rgba(226, 232, 240, 0.75);
 }
 
 .chartWrap {
-  height: 220px;
+  position: relative;
+  height: 200px;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.tooltipTitle {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.tooltipRow {
+  font-size: 0.75rem;
+}
+
+.tooltipHint {
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.75);
 }
 
 .stateBlock {
@@ -49,14 +68,14 @@
 .stateTitle {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--color-text-white);
+  color: #f8fafc;
 }
 
 .stateHint {
   font-size: 0.8rem;
-  color: var(--color-text-slate);
+  color: rgba(148, 163, 184, 0.85);
 }
 
 .skeletonChart {
-  height: 180px;
+  height: 160px;
 }

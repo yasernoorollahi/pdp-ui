@@ -1,5 +1,6 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
-import type { InsightSummary } from '../../../services/insights.service';
+import type { InsightSummary, TrendPoint } from '../../../services/insights.service';
+import { SIGNAL_COLORS, formatShortDate } from '../utils/signalUtils';
 import styles from './NewReflectionCard.module.css';
 
 type NewReflectionCardProps = {
@@ -7,16 +8,37 @@ type NewReflectionCardProps = {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  trends: {
+    energy: TrendPoint[];
+    motivation: TrendPoint[];
+    social: TrendPoint[];
+    discipline: TrendPoint[];
+  };
 };
 
-export const NewReflectionCard = ({ data, loading, error, onRetry }: NewReflectionCardProps) => {
+const trendDirection = (trend: TrendPoint[]) => {
+  if (trend.length < 2) return 'stable';
+  const first = trend[0].value;
+  const last = trend[trend.length - 1].value;
+  const delta = last - first;
+  if (Math.abs(delta) < 0.05) return 'stable';
+  return delta > 0 ? 'rising' : 'falling';
+};
+
+const peakDay = (trend: TrendPoint[]) => {
+  if (trend.length === 0) return '';
+  const peak = trend.reduce((max, point) => (point.value > max.value ? point : max), trend[0]);
+  return formatShortDate(peak.date);
+};
+
+export const NewReflectionCard = ({ data, loading, error, onRetry, trends }: NewReflectionCardProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Weekly Reflection</p>
-            <h3 className={styles.title}>Your week at a glance</h3>
+            <h3 className={styles.title}>Signal narrative</h3>
           </div>
         </div>
         <Skeleton count={3} className={styles.skeletonRow} />
@@ -30,7 +52,7 @@ export const NewReflectionCard = ({ data, loading, error, onRetry }: NewReflecti
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Weekly Reflection</p>
-            <h3 className={styles.title}>Your week at a glance</h3>
+            <h3 className={styles.title}>Signal narrative</h3>
           </div>
         </div>
         <div className={styles.stateBlock}>
@@ -48,7 +70,7 @@ export const NewReflectionCard = ({ data, loading, error, onRetry }: NewReflecti
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Weekly Reflection</p>
-            <h3 className={styles.title}>Your week at a glance</h3>
+            <h3 className={styles.title}>Signal narrative</h3>
           </div>
         </div>
         <div className={styles.stateBlock}>
@@ -59,12 +81,35 @@ export const NewReflectionCard = ({ data, loading, error, onRetry }: NewReflecti
     );
   }
 
-  const items = [
-    { label: 'Energy', value: data.energy },
-    { label: 'Motivation', value: data.motivation },
-    { label: 'Friction', value: data.friction },
-    { label: 'Social', value: data.social },
-    { label: 'Discipline', value: data.discipline },
+  const cards = [
+    {
+      label: 'Energy',
+      description: data.energy,
+      trend: trendDirection(trends.energy),
+      peak: peakDay(trends.energy),
+      color: SIGNAL_COLORS.energy,
+    },
+    {
+      label: 'Motivation',
+      description: data.motivation,
+      trend: trendDirection(trends.motivation),
+      peak: peakDay(trends.motivation),
+      color: SIGNAL_COLORS.motivation,
+    },
+    {
+      label: 'Social',
+      description: data.social,
+      trend: trendDirection(trends.social),
+      peak: peakDay(trends.social),
+      color: SIGNAL_COLORS.social,
+    },
+    {
+      label: 'Discipline',
+      description: data.discipline,
+      trend: trendDirection(trends.discipline),
+      peak: peakDay(trends.discipline),
+      color: SIGNAL_COLORS.discipline,
+    },
   ];
 
   return (
@@ -72,16 +117,25 @@ export const NewReflectionCard = ({ data, loading, error, onRetry }: NewReflecti
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Weekly Reflection</p>
-          <h3 className={styles.title}>Your week at a glance</h3>
+          <h3 className={styles.title}>Signal narrative</h3>
         </div>
-        <div className={styles.headerNote}>Semantic summary, not raw metrics.</div>
+        <div className={styles.headerNote}>Readable insights instead of raw charts.</div>
       </div>
 
-      <div className={styles.list}>
-        {items.map((item) => (
-          <div key={item.label} className={styles.row}>
-            <span className={styles.rowLabel}>{item.label}</span>
-            <span className={styles.rowValue}>{item.value}</span>
+      <div className={styles.grid}>
+        {cards.map((item) => (
+          <div key={item.label} className={styles.insightCard}>
+            <div className={styles.cardTop}>
+              <span className={styles.cardLabel}>{item.label}</span>
+              <span className={styles.cardTrend} style={{ color: item.color }}>
+                {item.trend === 'rising' ? '↑ Rising trend' : item.trend === 'falling' ? '↓ Falling trend' : '→ Stable'}
+              </span>
+            </div>
+            <div className={styles.cardDesc}>{item.description}</div>
+            <div className={styles.cardMeta}>
+              <span className={styles.cardMetaLabel}>Peak day</span>
+              <span className={styles.cardMetaValue} style={{ color: item.color }}>{item.peak || '—'}</span>
+            </div>
           </div>
         ))}
       </div>

@@ -4,7 +4,7 @@
   gap: 1rem;
   min-height: 240px;
   animation: cardIn 0.5s ease both;
-  border: 1px solid rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 255, 163, 0.15);
 }
 
 .header {
@@ -22,20 +22,57 @@
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: #f8fafc;
   margin-top: 0.35rem;
 }
 
 .headerNote {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.75rem;
-  color: rgba(226, 232, 240, 0.7);
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.trendLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.65rem;
+}
+
+.trendUp {
+  color: #00ffa3;
+  font-size: 1rem;
+}
+
+.trendDown {
+  color: #ff6b6b;
+  font-size: 1rem;
+}
+
+.trendFlat {
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 1rem;
 }
 
 .chartWrap {
   position: relative;
-  height: 190px;
+  height: 180px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.footerValue {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: #00ffa3;
 }
 
 .tooltip {
@@ -44,20 +81,24 @@
   gap: 0.25rem;
 }
 
-.tooltipLabel {
+.tooltipTitle {
   font-weight: 600;
   color: #f8fafc;
 }
 
+.tooltipDate {
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.75);
+}
+
 .tooltipValue {
   font-family: 'JetBrains Mono', 'SF Mono', monospace;
-  font-size: 0.95rem;
-  color: #00e5ff;
+  color: #00ffa3;
 }
 
 .tooltipHint {
-  font-size: 0.7rem;
-  color: rgba(226, 232, 240, 0.72);
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.75);
 }
 
 .stateBlock {
@@ -78,6 +119,6 @@
   color: rgba(148, 163, 184, 0.85);
 }
 
-.skeletonLine {
+.skeletonChart {
   height: 160px;
 }

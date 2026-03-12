@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { insightsService } from '../../../services/insights.service';
 import type {
-  MindSnapshot as MindSnapshotData,
   TimelinePoint,
-  FrictionPoint,
   MoodWord,
   InsightSummary,
   EnergyTrend,
@@ -12,12 +10,16 @@ import type {
   DisciplineTrend,
 } from '../../../services/insights.service';
 import { NewMindSnapshot } from '../components/NewMindSnapshot';
-import { NewTimelineChart } from '../components/NewTimelineChart';
 import { NewLifeBalanceRadar } from '../components/NewLifeBalanceRadar';
-import { NewFrictionHeatmap } from '../components/NewFrictionHeatmap';
-import { NewMoodCloud } from '../components/NewMoodCloud';
-import { NewInsightTrendCard } from '../components/NewInsightTrendCard';
+import { NewDailyRhythmChart } from '../components/NewDailyRhythmChart';
+import { NewMotivationMomentum } from '../components/NewMotivationMomentum';
+import { NewSocialPulseBar } from '../components/NewSocialPulseBar';
+import { NewDisciplineTraceHeatmap } from '../components/NewDisciplineTraceHeatmap';
+import { NewTimelineChart } from '../components/NewTimelineChart';
 import { NewReflectionCard } from '../components/NewReflectionCard';
+import { NewBehaviorHeatCalendar } from '../components/NewBehaviorHeatCalendar';
+import { NewMoodCloud } from '../components/NewMoodCloud';
+import { formatLongDate, interpretationText, SIGNAL_COLORS, clamp01 } from '../utils/signalUtils';
 import styles from './InsightsNewPage.module.css';
 
 type LoadState<T> = {
@@ -32,24 +34,21 @@ const createLoadingState = <T,>(): LoadState<T> => ({
   data: null,
 });
 
-const formatLongDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-};
-
 const errorMessage = (error: unknown) => {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;
   return 'Unexpected error. Please try again.';
 };
 
+const average = (values: number[]) => {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+};
+
 export const InsightsNewPage = () => {
   const days = 15;
 
-  const [snapshotState, setSnapshotState] = useState<LoadState<MindSnapshotData>>(createLoadingState);
   const [timelineState, setTimelineState] = useState<LoadState<TimelinePoint[]>>(createLoadingState);
-  const [frictionState, setFrictionState] = useState<LoadState<FrictionPoint[]>>(createLoadingState);
   const [moodState, setMoodState] = useState<LoadState<MoodWord[]>>(createLoadingState);
   const [summaryState, setSummaryState] = useState<LoadState<InsightSummary>>(createLoadingState);
   const [energyState, setEnergyState] = useState<LoadState<EnergyTrend>>(createLoadingState);
@@ -58,9 +57,7 @@ export const InsightsNewPage = () => {
   const [disciplineState, setDisciplineState] = useState<LoadState<DisciplineTrend>>(createLoadingState);
 
   const loadInsights = useCallback(async () => {
-    setSnapshotState(createLoadingState());
     setTimelineState(createLoadingState());
-    setFrictionState(createLoadingState());
     setMoodState(createLoadingState());
     setSummaryState(createLoadingState());
     setEnergyState(createLoadingState());
@@ -69,9 +66,7 @@ export const InsightsNewPage = () => {
     setDisciplineState(createLoadingState());
 
     const results = await Promise.allSettled([
-      insightsService.getTodaySnapshot(),
       insightsService.getTimeline(days),
-      insightsService.getFrictionHeatmap(),
       insightsService.getMoods(),
       insightsService.getSummary(),
       insightsService.getEnergy(),
@@ -81,9 +76,7 @@ export const InsightsNewPage = () => {
     ]);
 
     const [
-      snapshotResult,
       timelineResult,
-      frictionResult,
       moodResult,
       summaryResult,
       energyResult,
@@ -92,22 +85,10 @@ export const InsightsNewPage = () => {
       disciplineResult,
     ] = results;
 
-    if (snapshotResult.status === 'fulfilled') {
-      setSnapshotState({ loading: false, error: null, data: snapshotResult.value });
-    } else {
-      setSnapshotState({ loading: false, error: errorMessage(snapshotResult.reason), data: null });
-    }
-
     if (timelineResult.status === 'fulfilled') {
       setTimelineState({ loading: false, error: null, data: timelineResult.value });
     } else {
       setTimelineState({ loading: false, error: errorMessage(timelineResult.reason), data: null });
-    }
-
-    if (frictionResult.status === 'fulfilled') {
-      setFrictionState({ loading: false, error: null, data: frictionResult.value });
-    } else {
-      setFrictionState({ loading: false, error: errorMessage(frictionResult.reason), data: null });
     }
 
     if (moodResult.status === 'fulfilled') {
@@ -157,51 +138,29 @@ export const InsightsNewPage = () => {
     return formatLongDate(new Date().toISOString());
   }, [timelineState.data]);
 
-  const energyDescriptor = useMemo(() => {
-    const value = energyState.data?.averageEnergy ?? 0;
-    if (value >= 0.75) return 'High';
-    if (value >= 0.5) return 'Steady';
-    if (value >= 0.25) return 'Low';
-    return 'Very Low';
-  }, [energyState.data]);
+  const summarySignals = useMemo(() => {
+    const data = timelineState.data ?? [];
+    if (data.length === 0) return null;
+    const frictionMax = Math.max(...data.map((item) => item.friction), 1);
+    const socialMax = Math.max(...data.map((item) => item.social), 1);
+    const disciplineMax = Math.max(...data.map((item) => item.discipline), 1);
 
-  const motivationDescriptor = useMemo(() => {
-    const value = motivationState.data?.averageMotivation ?? 0;
-    if (value >= 0.75) return 'High';
-    if (value >= 0.5) return 'Focused';
-    if (value >= 0.25) return 'Low';
-    return 'Very Low';
-  }, [motivationState.data]);
+    const energy = clamp01(average(data.map((item) => item.energy)));
+    const motivation = clamp01(average(data.map((item) => item.motivation)));
+    const social = clamp01(average(data.map((item) => item.social / socialMax)));
+    const discipline = clamp01(average(data.map((item) => item.discipline / disciplineMax)));
+    const friction = clamp01(average(data.map((item) => item.friction / frictionMax)));
 
-  const socialDescriptor = useMemo(() => {
-    const trend = socialState.data?.trend ?? [];
-    const max = Math.max(...trend.map((item) => item.value), 1);
-    const avg = trend.reduce((sum, item) => sum + item.value, 0) / Math.max(trend.length, 1);
-    const ratio = max === 0 ? 0 : avg / max;
-    if (ratio >= 0.75) return 'Active';
-    if (ratio >= 0.5) return 'Present';
-    if (ratio >= 0.25) return 'Quiet';
-    return 'Silent';
-  }, [socialState.data]);
-
-  const disciplineDescriptor = useMemo(() => {
-    const trend = disciplineState.data?.trend ?? [];
-    const max = Math.max(...trend.map((item) => item.value), 1);
-    const avg = trend.reduce((sum, item) => sum + item.value, 0) / Math.max(trend.length, 1);
-    const ratio = max === 0 ? 0 : avg / max;
-    if (ratio >= 0.75) return 'Strong';
-    if (ratio >= 0.5) return 'Steady';
-    if (ratio >= 0.25) return 'Wavering';
-    return 'Low';
-  }, [disciplineState.data]);
+    return { energy, motivation, social, discipline, friction };
+  }, [timelineState.data]);
 
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
         <div className={styles.heroContent}>
-          <p className={styles.heroKicker}>Your Mind — Last {days} Days</p>
-          <h2 className={styles.heroTitle}>A mirror of your recent patterns</h2>
-          <p className={styles.heroSubtitle}>Your behavioral reflection, distilled from daily signals.</p>
+          <p className={styles.heroKicker}>Behavioral Observability · Last {days} Days</p>
+          <h2 className={styles.heroTitle}>Your Cognitive Mirror</h2>
+          <p className={styles.heroSubtitle}>Signals distilled into patterns. Observe your energy, momentum, and behavioral rhythms.</p>
         </div>
         <div className={styles.heroMeta}>
           <span className={styles.heroMetaLabel}>Last updated</span>
@@ -209,11 +168,31 @@ export const InsightsNewPage = () => {
         </div>
       </div>
 
+      {summarySignals ? (
+        <div className={styles.summaryRow}>
+          {([
+            { key: 'energy', label: 'Energy', value: summarySignals.energy },
+            { key: 'motivation', label: 'Motivation', value: summarySignals.motivation },
+            { key: 'social', label: 'Social', value: summarySignals.social },
+            { key: 'discipline', label: 'Discipline', value: summarySignals.discipline },
+            { key: 'friction', label: 'Friction', value: summarySignals.friction },
+          ] as const).map((item) => (
+            <div key={item.key} className={styles.summaryCard}>
+              <div className={styles.summaryLabel}>{item.label}</div>
+              <div className={styles.summaryValue} style={{ color: SIGNAL_COLORS[item.key] }}>
+                {Math.round(item.value * 100)}%
+              </div>
+              <div className={styles.summaryHint}>{interpretationText(item.key, item.value)}</div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       <div className={styles.gridTop}>
         <NewMindSnapshot
-          data={snapshotState.data}
-          loading={snapshotState.loading}
-          error={snapshotState.error}
+          data={timelineState.data}
+          loading={timelineState.loading}
+          error={timelineState.error}
           onRetry={loadInsights}
         />
         <NewLifeBalanceRadar
@@ -225,53 +204,29 @@ export const InsightsNewPage = () => {
       </div>
 
       <div className={styles.trendGrid}>
-        <NewInsightTrendCard
-          title="Energy Flow"
-          subtitle="Daily Rhythm"
-          variant="energy"
-          color="#2dd4bf"
+        <NewDailyRhythmChart
+          data={energyState.data}
           loading={energyState.loading}
           error={energyState.error}
-          empty={!energyState.data || energyState.data.trend.length === 0}
           onRetry={loadInsights}
-          descriptor={energyDescriptor}
-          trend={energyState.data?.trend ?? []}
         />
-        <NewInsightTrendCard
-          title="Motivation Arc"
-          subtitle="Momentum"
-          variant="motivation"
-          color="#34d399"
+        <NewMotivationMomentum
+          data={motivationState.data}
           loading={motivationState.loading}
           error={motivationState.error}
-          empty={!motivationState.data || motivationState.data.trend.length === 0}
           onRetry={loadInsights}
-          descriptor={motivationDescriptor}
-          trend={motivationState.data?.trend ?? []}
         />
-        <NewInsightTrendCard
-          title="Social Pulse"
-          subtitle="Connections"
-          variant="social"
-          color="#60a5fa"
+        <NewSocialPulseBar
+          data={socialState.data}
           loading={socialState.loading}
           error={socialState.error}
-          empty={!socialState.data || socialState.data.trend.length === 0}
           onRetry={loadInsights}
-          descriptor={socialDescriptor}
-          trend={socialState.data?.trend ?? []}
         />
-        <NewInsightTrendCard
-          title="Discipline Trace"
-          subtitle="Habits"
-          variant="discipline"
-          color="#c084fc"
-          loading={disciplineState.loading}
-          error={disciplineState.error}
-          empty={!disciplineState.data || disciplineState.data.trend.length === 0}
+        <NewDisciplineTraceHeatmap
+          data={timelineState.data}
+          loading={timelineState.loading}
+          error={timelineState.error}
           onRetry={loadInsights}
-          descriptor={disciplineDescriptor}
-          trend={disciplineState.data?.trend ?? []}
         />
       </div>
 
@@ -288,13 +243,19 @@ export const InsightsNewPage = () => {
         loading={summaryState.loading}
         error={summaryState.error}
         onRetry={loadInsights}
+        trends={{
+          energy: energyState.data?.trend ?? [],
+          motivation: motivationState.data?.trend ?? [],
+          social: socialState.data?.trend ?? [],
+          discipline: disciplineState.data?.trend ?? [],
+        }}
       />
 
       <div className={styles.gridBottom}>
-        <NewFrictionHeatmap
-          data={frictionState.data}
-          loading={frictionState.loading}
-          error={frictionState.error}
+        <NewBehaviorHeatCalendar
+          data={timelineState.data}
+          loading={timelineState.loading}
+          error={timelineState.error}
           onRetry={loadInsights}
         />
         <NewMoodCloud

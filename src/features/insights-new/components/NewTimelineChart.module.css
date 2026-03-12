@@ -1,8 +1,10 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.2rem;
+  min-height: 340px;
   animation: cardIn 0.5s ease both;
+  border: 1px solid rgba(0, 229, 255, 0.18);
 }
 
 .header {
@@ -15,68 +17,120 @@
 .kicker {
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--color-text-muted);
+  letter-spacing: 0.2em;
+  color: rgba(148, 163, 184, 0.9);
 }
 
 .title {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--color-text-white);
+  color: #f8fafc;
   margin-top: 0.35rem;
 }
 
 .headerNote {
-  font-size: 0.75rem;
-  color: var(--color-text-slate);
-  background: rgba(17, 24, 39, 0.6);
-  border: 1px solid var(--color-border-subtle);
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.7);
 }
 
-.chartWrap {
-  height: 240px;
+.controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.legend {
+.toggles {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
-.legendItem {
+.toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: rgba(226, 232, 240, 0.8);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  transition: all 0.2s ease;
 }
 
-.legendDot {
-  width: 10px;
-  height: 10px;
+.toggleActive {
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.18);
+}
+
+.toggleDot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
-.legendEnergy {
-  background: var(--color-teal);
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 0.75rem;
 }
 
-.legendMotivation {
-  background: var(--color-emerald);
+.zoomLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.6rem;
 }
 
-.legendFriction {
-  background: var(--color-gold-light);
+.zoomSlider {
+  width: 140px;
 }
 
-.legendSocial {
-  background: var(--color-blue);
+.zoomValue {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: #00e5ff;
 }
 
-.legendDiscipline {
-  background: var(--color-purple);
+.chartWrap {
+  position: relative;
+  height: 240px;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tooltipTitle {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.tooltipRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+}
+
+.tooltipLabel {
+  font-weight: 600;
+}
+
+.tooltipValue {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.tooltipHint {
+  font-size: 0.7rem;
+  color: rgba(226, 232, 240, 0.65);
 }
 
 .stateBlock {
@@ -89,14 +143,14 @@
 .stateTitle {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--color-text-white);
+  color: #f8fafc;
 }
 
 .stateHint {
   font-size: 0.8rem;
-  color: var(--color-text-slate);
+  color: rgba(148, 163, 184, 0.85);
 }
 
 .skeletonChart {
-  height: 220px;
+  height: 240px;
 }
