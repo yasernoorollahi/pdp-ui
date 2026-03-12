@@ -36,62 +36,7 @@
 }
 
 .chartWrap {
-  position: relative;
-  padding: 0.75rem 0;
-}
-
-.chart {
-  width: 100%;
-  height: 200px;
-}
-
-.grid line {
-  stroke: rgba(255, 255, 255, 0.06);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-}
-
-.lineEnergy {
-  stroke: var(--color-teal);
-  stroke-width: 2.4;
-  fill: none;
-  filter: drop-shadow(0 0 6px var(--color-teal-35));
-}
-
-.lineMotivation {
-  stroke: var(--color-emerald);
-  stroke-width: 2.4;
-  fill: none;
-  filter: drop-shadow(0 0 6px var(--color-emerald-35));
-}
-
-.lineFriction {
-  stroke: var(--color-gold-light);
-  stroke-width: 2;
-  fill: none;
-  filter: drop-shadow(0 0 6px var(--color-gold-35));
-}
-
-.lineSocial {
-  stroke: var(--color-blue);
-  stroke-width: 2;
-  fill: none;
-  filter: drop-shadow(0 0 6px var(--color-blue-35));
-}
-
-.lineDiscipline {
-  stroke: var(--color-purple);
-  stroke-width: 2;
-  fill: none;
-  filter: drop-shadow(0 0 6px var(--color-purple-35));
-}
-
-.axisLabels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.7rem;
-  color: var(--color-text-muted);
-  margin-top: 0.5rem;
+  height: 240px;
 }
 
 .legend {
@@ -114,23 +59,23 @@
   border-radius: 50%;
 }
 
-.legendDot.lineEnergy {
+.legendEnergy {
   background: var(--color-teal);
 }
 
-.legendDot.lineMotivation {
+.legendMotivation {
   background: var(--color-emerald);
 }
 
-.legendDot.lineFriction {
+.legendFriction {
   background: var(--color-gold-light);
 }
 
-.legendDot.lineSocial {
+.legendSocial {
   background: var(--color-blue);
 }
 
-.legendDot.lineDiscipline {
+.legendDiscipline {
   background: var(--color-purple);
 }
 
@@ -154,14 +99,4 @@
 
 .skeletonChart {
   height: 220px;
-}
-
-.skeletonRow {
-  height: 32px;
-}
-
-@media (max-width: 900px) {
-  .chart {
-    height: 180px;
-  }
 }

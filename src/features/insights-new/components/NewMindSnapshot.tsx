@@ -1,8 +1,9 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { MindSnapshot as MindSnapshotData } from '../../../services/insights.service';
-import styles from './MindSnapshot.module.css';
+import { ResponsiveBar } from '@nivo/bar';
+import styles from './NewMindSnapshot.module.css';
 
-type MindSnapshotProps = {
+type NewMindSnapshotProps = {
   data: MindSnapshotData | null;
   loading: boolean;
   error: string | null;
@@ -10,8 +11,6 @@ type MindSnapshotProps = {
 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
-const normalizeCount = (value: number, max = 5) => clamp01(value / max);
 
 const scoreLabel = (value: number) => {
   if (value >= 0.75) return 'High';
@@ -40,12 +39,7 @@ const disciplineLabel = (value: number) => {
   return 'Low';
 };
 
-const buildSegments = (value: number) => {
-  const filled = Math.round(clamp01(value) * 10);
-  return Array.from({ length: 10 }, (_, index) => index < filled);
-};
-
-export const MindSnapshot = ({ data, loading, error, onRetry }: MindSnapshotProps) => {
+export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapshotProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
@@ -97,40 +91,35 @@ export const MindSnapshot = ({ data, loading, error, onRetry }: MindSnapshotProp
 
   const energyScore = clamp01(data.energy);
   const motivationScore = clamp01(data.motivation);
-  const frictionScore = normalizeCount(data.friction, 4);
-  const socialScore = normalizeCount(data.social, 4);
-  const disciplineScore = normalizeCount(data.discipline, 4);
+  const frictionScore = clamp01(data.friction / 4);
+  const socialScore = clamp01(data.social / 4);
+  const disciplineScore = clamp01(data.discipline / 4);
 
-  const rows = [
+  const chartData = [
     {
-      label: 'Energy',
-      value: energyScore,
-      descriptor: scoreLabel(energyScore),
-      variant: 'energy',
+      metric: 'Energy',
+      value: energyScore * 100,
+      label: scoreLabel(energyScore),
     },
     {
-      label: 'Motivation',
-      value: motivationScore,
-      descriptor: scoreLabel(motivationScore),
-      variant: 'motivation',
+      metric: 'Motivation',
+      value: motivationScore * 100,
+      label: scoreLabel(motivationScore),
     },
     {
-      label: 'Friction',
-      value: frictionScore,
-      descriptor: frictionLabel(frictionScore),
-      variant: 'friction',
+      metric: 'Friction',
+      value: frictionScore * 100,
+      label: frictionLabel(frictionScore),
     },
     {
-      label: 'Social',
-      value: socialScore,
-      descriptor: socialLabel(socialScore),
-      variant: 'social',
+      metric: 'Social',
+      value: socialScore * 100,
+      label: socialLabel(socialScore),
     },
     {
-      label: 'Discipline',
-      value: disciplineScore,
-      descriptor: disciplineLabel(disciplineScore),
-      variant: 'discipline',
+      metric: 'Discipline',
+      value: disciplineScore * 100,
+      label: disciplineLabel(disciplineScore),
     },
   ];
 
@@ -144,23 +133,59 @@ export const MindSnapshot = ({ data, loading, error, onRetry }: MindSnapshotProp
         <div className={styles.headerNote}>Signals distilled from your day.</div>
       </div>
 
-      <div className={styles.rows}>
-        {rows.map((row) => (
-          <div key={row.label} className={styles.row}>
-            <div className={styles.rowHeader}>
-              <span className={styles.rowLabel}>{row.label}</span>
-              <span className={`${styles.rowDescriptor} ${styles[row.variant]}`}>{row.descriptor}</span>
+      <div className={styles.chartWrap}>
+        <ResponsiveBar
+          data={chartData}
+          keys={['value']}
+          indexBy="metric"
+          layout="horizontal"
+          margin={{ top: 10, right: 40, bottom: 10, left: 90 }}
+          padding={0.4}
+          colors={['#2dd4bf', '#34d399', '#fcd34d', '#60a5fa', '#c084fc']}
+          borderRadius={6}
+          enableGridX={false}
+          enableGridY={false}
+          axisBottom={null}
+          axisLeft={{
+            tickSize: 0,
+            tickPadding: 12,
+            tickRotation: 0,
+          }}
+          enableLabel
+          label={(d) => String((d.data as { label?: string }).label ?? '')}
+          labelSkipWidth={10}
+          labelTextColor="#e8f5f3"
+          tooltip={(datum) => (
+            <div className={styles.tooltip}>
+              <span className={styles.tooltipLabel}>{datum.indexValue}</span>
+              <span className={styles.tooltipValue}>{(datum.data as { label?: string }).label}</span>
             </div>
-            <div className={styles.bar}>
-              {buildSegments(row.value).map((active, index) => (
-                <span
-                  key={`${row.label}-${index}`}
-                  className={`${styles.barSegment} ${active ? styles.barSegmentActive : ''} ${styles[row.variant]}`}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+          )}
+          theme={{
+            text: {
+              fill: '#e8f5f3',
+              fontSize: 11,
+            },
+            axis: {
+              ticks: {
+                text: {
+                  fill: '#94a3b8',
+                  fontSize: 12,
+                },
+              },
+            },
+            tooltip: {
+              container: {
+                background: 'rgba(6, 12, 16, 0.9)',
+                color: '#e8f5f3',
+                fontSize: 12,
+                borderRadius: 8,
+                border: '1px solid rgba(45, 212, 191, 0.2)',
+                padding: '6px 10px',
+              },
+            },
+          }}
+        />
       </div>
     </Card>
   );

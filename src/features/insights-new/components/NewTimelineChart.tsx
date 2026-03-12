@@ -1,8 +1,9 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { TimelinePoint } from '../../../services/insights.service';
-import styles from './TimelineChart.module.css';
+import { ResponsiveLine } from '@nivo/line';
+import styles from './NewTimelineChart.module.css';
 
-type TimelineChartProps = {
+type NewTimelineChartProps = {
   data: TimelinePoint[] | null;
   loading: boolean;
   error: string | null;
@@ -12,28 +13,13 @@ type TimelineChartProps = {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-const buildPath = (values: number[], width: number, height: number, padding: number) => {
-  if (values.length === 0) return '';
-  const maxX = width - padding * 2;
-  const maxY = height - padding * 2;
-  const step = values.length === 1 ? 0 : maxX / (values.length - 1);
-
-  return values
-    .map((value, index) => {
-      const x = padding + step * index;
-      const y = padding + (1 - clamp01(value)) * maxY;
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-    })
-    .join(' ');
-};
-
 const formatShortDate = (dateStr: string) => {
   const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-export const TimelineChart = ({ data, loading, error, onRetry, days }: TimelineChartProps) => {
+export const NewTimelineChart = ({ data, loading, error, onRetry, days }: NewTimelineChartProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
@@ -44,7 +30,6 @@ export const TimelineChart = ({ data, loading, error, onRetry, days }: TimelineC
           </div>
         </div>
         <Skeleton count={1} className={styles.skeletonChart} />
-        <Skeleton count={2} className={styles.skeletonRow} />
       </Card>
     );
   }
@@ -84,30 +69,42 @@ export const TimelineChart = ({ data, loading, error, onRetry, days }: TimelineC
     );
   }
 
-  const energyValues = data.map((item) => clamp01(item.energy));
-  const motivationValues = data.map((item) => clamp01(item.motivation));
   const frictionMax = Math.max(...data.map((item) => item.friction), 1);
   const socialMax = Math.max(...data.map((item) => item.social), 1);
   const disciplineMax = Math.max(...data.map((item) => item.discipline), 1);
 
-  const frictionValues = data.map((item) => clamp01(item.friction / frictionMax));
-  const socialValues = data.map((item) => clamp01(item.social / socialMax));
-  const disciplineValues = data.map((item) => clamp01(item.discipline / disciplineMax));
-
-  const width = 100;
-  const height = 36;
-  const padding = 4;
-
-  const lines = [
-    { label: 'Energy', values: energyValues, className: styles.lineEnergy },
-    { label: 'Motivation', values: motivationValues, className: styles.lineMotivation },
-    { label: 'Friction', values: frictionValues, className: styles.lineFriction },
-    { label: 'Social', values: socialValues, className: styles.lineSocial },
-    { label: 'Discipline', values: disciplineValues, className: styles.lineDiscipline },
+  const series = [
+    {
+      id: 'Energy',
+      color: '#2dd4bf',
+      data: data.map((item) => ({ x: formatShortDate(item.date), y: clamp01(item.energy) })),
+      className: styles.legendEnergy,
+    },
+    {
+      id: 'Motivation',
+      color: '#34d399',
+      data: data.map((item) => ({ x: formatShortDate(item.date), y: clamp01(item.motivation) })),
+      className: styles.legendMotivation,
+    },
+    {
+      id: 'Friction',
+      color: '#fcd34d',
+      data: data.map((item) => ({ x: formatShortDate(item.date), y: clamp01(item.friction / frictionMax) })),
+      className: styles.legendFriction,
+    },
+    {
+      id: 'Social',
+      color: '#60a5fa',
+      data: data.map((item) => ({ x: formatShortDate(item.date), y: clamp01(item.social / socialMax) })),
+      className: styles.legendSocial,
+    },
+    {
+      id: 'Discipline',
+      color: '#c084fc',
+      data: data.map((item) => ({ x: formatShortDate(item.date), y: clamp01(item.discipline / disciplineMax) })),
+      className: styles.legendDiscipline,
+    },
   ];
-
-  const startLabel = formatShortDate(data[0].date);
-  const endLabel = formatShortDate(data[data.length - 1].date);
 
   return (
     <Card className={`${styles.card} glassCard`}>
@@ -120,32 +117,57 @@ export const TimelineChart = ({ data, loading, error, onRetry, days }: TimelineC
       </div>
 
       <div className={styles.chartWrap}>
-        <svg viewBox={`0 0 ${width} ${height}`} className={styles.chart} role="img" aria-label="Behavioral timeline">
-          <g className={styles.grid}>
-            <line x1="0" y1="6" x2={width} y2="6" />
-            <line x1="0" y1="18" x2={width} y2="18" />
-            <line x1="0" y1="30" x2={width} y2="30" />
-          </g>
-          {lines.map((line) => (
-            <path
-              key={line.label}
-              d={buildPath(line.values, width, height, padding)}
-              className={line.className}
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-        </svg>
-        <div className={styles.axisLabels}>
-          <span>{startLabel}</span>
-          <span>{endLabel}</span>
-        </div>
+        <ResponsiveLine
+          data={series}
+          margin={{ top: 20, right: 20, bottom: 40, left: 20 }}
+          xScale={{ type: 'point' }}
+          yScale={{ type: 'linear', min: 0, max: 1, stacked: false }}
+          axisLeft={null}
+          axisTop={null}
+          axisRight={null}
+          axisBottom={{
+            tickSize: 0,
+            tickPadding: 10,
+            tickRotation: 0,
+          }}
+          colors={(d) => String(d.color)}
+          enablePoints={false}
+          enableGridY={false}
+          enableGridX={false}
+          lineWidth={2.4}
+          useMesh
+          theme={{
+            text: {
+              fill: '#94a3b8',
+              fontSize: 11,
+            },
+            axis: {
+              ticks: {
+                text: {
+                  fill: '#94a3b8',
+                  fontSize: 11,
+                },
+              },
+            },
+            tooltip: {
+              container: {
+                background: 'rgba(6, 12, 16, 0.92)',
+                color: '#e8f5f3',
+                fontSize: 12,
+                borderRadius: 8,
+                border: '1px solid rgba(45, 212, 191, 0.2)',
+                padding: '6px 10px',
+              },
+            },
+          }}
+        />
       </div>
 
       <div className={styles.legend}>
-        {lines.map((line) => (
-          <div key={line.label} className={styles.legendItem}>
-            <span className={`${styles.legendDot} ${line.className}`} />
-            <span className={styles.legendLabel}>{line.label}</span>
+        {series.map((item) => (
+          <div key={item.id} className={styles.legendItem}>
+            <span className={`${styles.legendDot} ${item.className}`} />
+            <span className={styles.legendLabel}>{item.id}</span>
           </div>
         ))}
       </div>

@@ -1,12 +1,14 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
-import styles from './InsightTrendCard.module.css';
+import { ResponsiveLine } from '@nivo/line';
+import styles from './NewInsightTrendCard.module.css';
 
 type TrendPoint = { date: string; value: number };
 
-type InsightTrendCardProps = {
+type NewInsightTrendCardProps = {
   title: string;
   subtitle: string;
   variant: 'energy' | 'motivation' | 'social' | 'discipline';
+  color: string;
   loading: boolean;
   error: string | null;
   empty: boolean;
@@ -17,32 +19,18 @@ type InsightTrendCardProps = {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-const buildPath = (values: number[], width: number, height: number, padding: number) => {
-  if (values.length === 0) return '';
-  const maxX = width - padding * 2;
-  const maxY = height - padding * 2;
-  const step = values.length === 1 ? 0 : maxX / (values.length - 1);
-
-  return values
-    .map((value, index) => {
-      const x = padding + step * index;
-      const y = padding + (1 - clamp01(value)) * maxY;
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-    })
-    .join(' ');
-};
-
-export const InsightTrendCard = ({
+export const NewInsightTrendCard = ({
   title,
   subtitle,
   variant,
+  color,
   loading,
   error,
   empty,
   onRetry,
   descriptor,
   trend,
-}: InsightTrendCardProps) => {
+}: NewInsightTrendCardProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
@@ -92,10 +80,7 @@ export const InsightTrendCard = ({
     );
   }
 
-  const values = trend.map((point) => clamp01(point.value));
-  const width = 100;
-  const height = 36;
-  const padding = 4;
+  const values = trend.map((point) => ({ x: point.date, y: clamp01(point.value) }));
 
   return (
     <Card className={`${styles.card} glassCard`}>
@@ -108,13 +93,38 @@ export const InsightTrendCard = ({
       </div>
 
       <div className={styles.sparklineWrap}>
-        <svg viewBox={`0 0 ${width} ${height}`} className={styles.sparkline} role="img" aria-label={`${title} trend`}>
-          <path
-            d={buildPath(values, width, height, padding)}
-            className={`${styles.sparklinePath} ${styles[variant]}`}
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
+        <ResponsiveLine
+          data={[{ id: title, color, data: values }]}
+          margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+          xScale={{ type: 'point' }}
+          yScale={{ type: 'linear', min: 0, max: 1, stacked: false }}
+          axisLeft={null}
+          axisBottom={null}
+          axisRight={null}
+          axisTop={null}
+          colors={[color]}
+          enablePoints={false}
+          enableGridX={false}
+          enableGridY={false}
+          lineWidth={2.6}
+          useMesh
+          theme={{
+            text: {
+              fill: '#94a3b8',
+              fontSize: 11,
+            },
+            tooltip: {
+              container: {
+                background: 'rgba(6, 12, 16, 0.92)',
+                color: '#e8f5f3',
+                fontSize: 12,
+                borderRadius: 8,
+                border: '1px solid rgba(45, 212, 191, 0.2)',
+                padding: '6px 10px',
+              },
+            },
+          }}
+        />
       </div>
     </Card>
   );

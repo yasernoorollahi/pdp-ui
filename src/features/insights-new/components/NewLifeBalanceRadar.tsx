@@ -1,16 +1,14 @@
-import { useMemo } from 'react';
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { TimelinePoint } from '../../../services/insights.service';
-import styles from './LifeBalanceRadar.module.css';
+import { ResponsiveRadar } from '@nivo/radar';
+import styles from './NewLifeBalanceRadar.module.css';
 
-type LifeBalanceRadarProps = {
+type NewLifeBalanceRadarProps = {
   data: TimelinePoint[] | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
 };
-
-const RADAR_LABELS = ['Work', 'Health', 'Social', 'Discipline', 'Energy'];
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -26,7 +24,7 @@ const descriptor = (value: number) => {
   return 'Minimal';
 };
 
-export const LifeBalanceRadar = ({ data, loading, error, onRetry }: LifeBalanceRadarProps) => {
+export const NewLifeBalanceRadar = ({ data, loading, error, onRetry }: NewLifeBalanceRadarProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
@@ -85,43 +83,28 @@ export const LifeBalanceRadar = ({ data, loading, error, onRetry }: LifeBalanceR
   const socialAvg = average(data.map((item) => clamp01(item.social / socialMax)));
   const disciplineAvg = average(data.map((item) => clamp01(item.discipline / disciplineMax)));
 
-  const values = [
-    clamp01((motivationAvg + disciplineAvg) / 2),
-    clamp01((energyAvg + (1 - frictionAvg)) / 2),
-    socialAvg,
-    disciplineAvg,
-    energyAvg,
+  const radarData = [
+    {
+      dimension: 'Work',
+      value: clamp01((motivationAvg + disciplineAvg) / 2),
+    },
+    {
+      dimension: 'Health',
+      value: clamp01((energyAvg + (1 - frictionAvg)) / 2),
+    },
+    {
+      dimension: 'Social',
+      value: socialAvg,
+    },
+    {
+      dimension: 'Discipline',
+      value: disciplineAvg,
+    },
+    {
+      dimension: 'Energy',
+      value: energyAvg,
+    },
   ];
-
-  const points = useMemo(() => {
-    const cx = 60;
-    const cy = 60;
-    const radius = 42;
-    const angleStep = (Math.PI * 2) / RADAR_LABELS.length;
-
-    return RADAR_LABELS.map((_, index) => {
-      const angle = -Math.PI / 2 + angleStep * index;
-      const distance = radius * values[index];
-      const x = cx + Math.cos(angle) * distance;
-      const y = cy + Math.sin(angle) * distance;
-      return `${x},${y}`;
-    });
-  }, [values]);
-
-  const ringPoints = [0.33, 0.66, 1].map((multiplier) => {
-    const cx = 60;
-    const cy = 60;
-    const radius = 42 * multiplier;
-    const angleStep = (Math.PI * 2) / RADAR_LABELS.length;
-    return RADAR_LABELS
-      .map((_, index) => {
-        const angle = -Math.PI / 2 + angleStep * index;
-        const x = cx + Math.cos(angle) * radius;
-        const y = cy + Math.sin(angle) * radius;
-        return `${x},${y}`;
-      })
-      .join(' ');
-  });
 
   return (
     <Card className={`${styles.card} glassCard`}>
@@ -134,26 +117,46 @@ export const LifeBalanceRadar = ({ data, loading, error, onRetry }: LifeBalanceR
       </div>
 
       <div className={styles.radarWrap}>
-        <svg viewBox="0 0 120 120" className={styles.radar} role="img" aria-label="Life balance radar">
-          <g className={styles.radarGrid}>
-            {ringPoints.map((ring) => (
-              <polygon key={ring} points={ring} />
-            ))}
-            {RADAR_LABELS.map((_, index) => {
-              const angle = -Math.PI / 2 + (Math.PI * 2 * index) / RADAR_LABELS.length;
-              const x = 60 + Math.cos(angle) * 42;
-              const y = 60 + Math.sin(angle) * 42;
-              return <line key={`axis-${index}`} x1="60" y1="60" x2={x} y2={y} />;
-            })}
-          </g>
-          <polygon points={points.join(' ')} className={styles.radarFill} />
-        </svg>
+        <div className={styles.radarChart}>
+          <ResponsiveRadar
+            data={radarData}
+            keys={['value']}
+            indexBy="dimension"
+            maxValue={1}
+            margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+            curve="linearClosed"
+            borderWidth={2}
+            borderColor="#2dd4bf"
+            gridLevels={5}
+            gridShape="linear"
+            dotSize={6}
+            dotColor="#2dd4bf"
+            dotBorderWidth={2}
+            dotBorderColor="#0d9488"
+            colors={['rgba(45, 212, 191, 0.2)']}
+            fillOpacity={0.3}
+            blendMode="screen"
+            isInteractive={false}
+            theme={{
+              text: {
+                fill: '#94a3b8',
+                fontSize: 11,
+              },
+              grid: {
+                line: {
+                  stroke: 'rgba(255,255,255,0.08)',
+                  strokeWidth: 1,
+                },
+              },
+            }}
+          />
+        </div>
 
         <div className={styles.radarLegend}>
-          {RADAR_LABELS.map((label, index) => (
-            <div key={label} className={styles.legendRow}>
-              <span className={styles.legendLabel}>{label}</span>
-              <span className={styles.legendValue}>{descriptor(values[index])}</span>
+          {radarData.map((item) => (
+            <div key={item.dimension} className={styles.legendRow}>
+              <span className={styles.legendLabel}>{item.dimension}</span>
+              <span className={styles.legendValue}>{descriptor(item.value)}</span>
             </div>
           ))}
         </div>

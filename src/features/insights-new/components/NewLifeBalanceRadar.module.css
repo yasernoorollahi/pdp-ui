@@ -40,25 +40,11 @@
   grid-template-columns: minmax(220px, 1fr) minmax(160px, 220px);
   gap: 1.5rem;
   align-items: center;
+  height: 240px;
 }
 
-.radar {
-  width: 100%;
+.radarChart {
   height: 220px;
-}
-
-.radarGrid polygon,
-.radarGrid line {
-  stroke: rgba(255, 255, 255, 0.08);
-  stroke-width: 1;
-  fill: none;
-}
-
-.radarFill {
-  fill: rgba(45, 212, 191, 0.18);
-  stroke: var(--color-teal);
-  stroke-width: 2;
-  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.35));
 }
 
 .radarLegend {
@@ -111,5 +97,6 @@
 @media (max-width: 900px) {
   .radarWrap {
     grid-template-columns: 1fr;
+    height: auto;
   }
 }

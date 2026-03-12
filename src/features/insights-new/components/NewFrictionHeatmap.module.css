@@ -35,44 +35,8 @@
   border-radius: 999px;
 }
 
-.cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.word {
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  text-transform: lowercase;
-  padding: 0.2rem 0.4rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.wordAccent {
-  color: var(--color-teal);
-  border-color: var(--color-teal-20);
-  background: rgba(45, 212, 191, 0.08);
-}
-
-.sizeS {
-  font-size: 0.75rem;
-}
-
-.sizeM {
-  font-size: 0.9rem;
-}
-
-.sizeL {
-  font-size: 1.1rem;
-}
-
-.sizeXL {
-  font-size: 1.35rem;
-  font-weight: 600;
+.chartWrap {
+  height: 220px;
 }
 
 .stateBlock {
@@ -93,6 +57,6 @@
   color: var(--color-text-slate);
 }
 
-.skeletonRow {
-  height: 42px;
+.skeletonChart {
+  height: 180px;
 }

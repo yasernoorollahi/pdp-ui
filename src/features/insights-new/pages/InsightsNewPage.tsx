@@ -11,14 +11,14 @@ import type {
   SocialTrend,
   DisciplineTrend,
 } from '../../../services/insights.service';
-import { MindSnapshot } from '../components/MindSnapshot';
-import { TimelineChart } from '../components/TimelineChart';
-import { LifeBalanceRadar } from '../components/LifeBalanceRadar';
-import { FrictionHeatmap } from '../components/FrictionHeatmap';
-import { MoodCloud } from '../components/MoodCloud';
-import { InsightTrendCard } from '../components/InsightTrendCard';
-import { ReflectionCard } from '../components/ReflectionCard';
-import styles from './InsightsPage.module.css';
+import { NewMindSnapshot } from '../components/NewMindSnapshot';
+import { NewTimelineChart } from '../components/NewTimelineChart';
+import { NewLifeBalanceRadar } from '../components/NewLifeBalanceRadar';
+import { NewFrictionHeatmap } from '../components/NewFrictionHeatmap';
+import { NewMoodCloud } from '../components/NewMoodCloud';
+import { NewInsightTrendCard } from '../components/NewInsightTrendCard';
+import { NewReflectionCard } from '../components/NewReflectionCard';
+import styles from './InsightsNewPage.module.css';
 
 type LoadState<T> = {
   loading: boolean;
@@ -44,7 +44,7 @@ const errorMessage = (error: unknown) => {
   return 'Unexpected error. Please try again.';
 };
 
-export const InsightsPage = () => {
+export const InsightsNewPage = () => {
   const days = 15;
 
   const [snapshotState, setSnapshotState] = useState<LoadState<MindSnapshotData>>(createLoadingState);
@@ -210,13 +210,13 @@ export const InsightsPage = () => {
       </div>
 
       <div className={styles.gridTop}>
-        <MindSnapshot
+        <NewMindSnapshot
           data={snapshotState.data}
           loading={snapshotState.loading}
           error={snapshotState.error}
           onRetry={loadInsights}
         />
-        <LifeBalanceRadar
+        <NewLifeBalanceRadar
           data={timelineState.data}
           loading={timelineState.loading}
           error={timelineState.error}
@@ -225,10 +225,11 @@ export const InsightsPage = () => {
       </div>
 
       <div className={styles.trendGrid}>
-        <InsightTrendCard
+        <NewInsightTrendCard
           title="Energy Flow"
           subtitle="Daily Rhythm"
           variant="energy"
+          color="#2dd4bf"
           loading={energyState.loading}
           error={energyState.error}
           empty={!energyState.data || energyState.data.trend.length === 0}
@@ -236,10 +237,11 @@ export const InsightsPage = () => {
           descriptor={energyDescriptor}
           trend={energyState.data?.trend ?? []}
         />
-        <InsightTrendCard
+        <NewInsightTrendCard
           title="Motivation Arc"
           subtitle="Momentum"
           variant="motivation"
+          color="#34d399"
           loading={motivationState.loading}
           error={motivationState.error}
           empty={!motivationState.data || motivationState.data.trend.length === 0}
@@ -247,10 +249,11 @@ export const InsightsPage = () => {
           descriptor={motivationDescriptor}
           trend={motivationState.data?.trend ?? []}
         />
-        <InsightTrendCard
+        <NewInsightTrendCard
           title="Social Pulse"
           subtitle="Connections"
           variant="social"
+          color="#60a5fa"
           loading={socialState.loading}
           error={socialState.error}
           empty={!socialState.data || socialState.data.trend.length === 0}
@@ -258,10 +261,11 @@ export const InsightsPage = () => {
           descriptor={socialDescriptor}
           trend={socialState.data?.trend ?? []}
         />
-        <InsightTrendCard
+        <NewInsightTrendCard
           title="Discipline Trace"
           subtitle="Habits"
           variant="discipline"
+          color="#c084fc"
           loading={disciplineState.loading}
           error={disciplineState.error}
           empty={!disciplineState.data || disciplineState.data.trend.length === 0}
@@ -271,7 +275,7 @@ export const InsightsPage = () => {
         />
       </div>
 
-      <TimelineChart
+      <NewTimelineChart
         data={timelineState.data}
         loading={timelineState.loading}
         error={timelineState.error}
@@ -279,7 +283,7 @@ export const InsightsPage = () => {
         days={days}
       />
 
-      <ReflectionCard
+      <NewReflectionCard
         data={summaryState.data}
         loading={summaryState.loading}
         error={summaryState.error}
@@ -287,13 +291,13 @@ export const InsightsPage = () => {
       />
 
       <div className={styles.gridBottom}>
-        <FrictionHeatmap
+        <NewFrictionHeatmap
           data={frictionState.data}
           loading={frictionState.loading}
           error={frictionState.error}
           onRetry={loadInsights}
         />
-        <MoodCloud
+        <NewMoodCloud
           data={moodState.data}
           loading={moodState.loading}
           error={moodState.error}

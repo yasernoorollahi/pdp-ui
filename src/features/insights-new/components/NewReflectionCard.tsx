@@ -1,22 +1,22 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { InsightSummary } from '../../../services/insights.service';
-import styles from './ReflectionCard.module.css';
+import styles from './NewReflectionCard.module.css';
 
-type ReflectionCardProps = {
+type NewReflectionCardProps = {
   data: InsightSummary | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
 };
 
-export const ReflectionCard = ({ data, loading, error, onRetry }: ReflectionCardProps) => {
+export const NewReflectionCard = ({ data, loading, error, onRetry }: NewReflectionCardProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Weekly Reflection</p>
-            <h3 className={styles.title}>Your mental weather</h3>
+            <h3 className={styles.title}>Your week at a glance</h3>
           </div>
         </div>
         <Skeleton count={3} className={styles.skeletonRow} />
@@ -30,7 +30,7 @@ export const ReflectionCard = ({ data, loading, error, onRetry }: ReflectionCard
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Weekly Reflection</p>
-            <h3 className={styles.title}>Your mental weather</h3>
+            <h3 className={styles.title}>Your week at a glance</h3>
           </div>
         </div>
         <div className={styles.stateBlock}>
@@ -48,7 +48,7 @@ export const ReflectionCard = ({ data, loading, error, onRetry }: ReflectionCard
         <div className={styles.header}>
           <div>
             <p className={styles.kicker}>Weekly Reflection</p>
-            <h3 className={styles.title}>Your mental weather</h3>
+            <h3 className={styles.title}>Your week at a glance</h3>
           </div>
         </div>
         <div className={styles.stateBlock}>
@@ -72,7 +72,7 @@ export const ReflectionCard = ({ data, loading, error, onRetry }: ReflectionCard
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Weekly Reflection</p>
-          <h3 className={styles.title}>Your mental weather</h3>
+          <h3 className={styles.title}>Your week at a glance</h3>
         </div>
         <div className={styles.headerNote}>Semantic summary, not raw metrics.</div>
       </div>

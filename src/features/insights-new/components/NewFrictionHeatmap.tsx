@@ -1,27 +1,18 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { FrictionPoint } from '../../../services/insights.service';
-import styles from './FrictionHeatmap.module.css';
+import { ResponsiveCalendar } from '@nivo/calendar';
+import styles from './NewFrictionHeatmap.module.css';
 
-type FrictionHeatmapProps = {
+type NewFrictionHeatmapProps = {
   data: FrictionPoint[] | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
 };
 
-const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
 const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
 
-const getLevel = (value: number) => {
-  if (value <= 0) return 0;
-  if (value <= 1) return 1;
-  if (value <= 2) return 2;
-  if (value <= 3) return 3;
-  return 4;
-};
-
-export const FrictionHeatmap = ({ data, loading, error, onRetry }: FrictionHeatmapProps) => {
+export const NewFrictionHeatmap = ({ data, loading, error, onRetry }: NewFrictionHeatmapProps) => {
   if (loading) {
     return (
       <Card className={`${styles.card} glassCard`}>
@@ -74,32 +65,19 @@ export const FrictionHeatmap = ({ data, loading, error, onRetry }: FrictionHeatm
   const map = new Map(data.map((item) => [item.date, item.value]));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const totalDays = 35;
+  const totalDays = 105;
   const start = new Date(today);
   start.setDate(today.getDate() - (totalDays - 1));
 
-  const startOffset = (start.getDay() + 6) % 7;
-  const rawCells = Array.from({ length: totalDays }, (_, index) => {
+  const calendarData = Array.from({ length: totalDays }, (_, index) => {
     const date = new Date(start);
     date.setDate(start.getDate() + index);
     const key = toDateKey(date);
     return {
-      date: key,
+      day: key,
       value: map.get(key) ?? 0,
     };
   });
-
-  const paddedCells = [
-    ...Array.from({ length: startOffset }, () => ({ date: '', value: 0, empty: true })),
-    ...rawCells.map((cell) => ({ ...cell, empty: false })),
-  ];
-
-  const remaining = paddedCells.length % 7;
-  const trailing = remaining === 0 ? 0 : 7 - remaining;
-  const finalCells = [
-    ...paddedCells,
-    ...Array.from({ length: trailing }, () => ({ date: '', value: 0, empty: true })),
-  ];
 
   return (
     <Card className={`${styles.card} glassCard`}>
@@ -111,36 +89,35 @@ export const FrictionHeatmap = ({ data, loading, error, onRetry }: FrictionHeatm
         <div className={styles.headerNote}>Light to heavy intensity.</div>
       </div>
 
-      <div className={styles.heatmap}>
-        <div className={styles.dayRow}>
-          {dayLabels.map((label) => (
-            <span key={label} className={styles.dayLabel}>{label}</span>
-          ))}
-        </div>
-        <div className={styles.grid}>
-          {finalCells.map((cell, index) => {
-            if (cell.empty) {
-              return <span key={`empty-${index}`} className={`${styles.cell} ${styles.cellEmpty}`} />;
-            }
-            const level = getLevel(cell.value);
-            return (
-              <span
-                key={cell.date}
-                className={`${styles.cell} ${styles[`level${level}`]}`}
-                aria-label={`Friction on ${cell.date}`}
-              />
-            );
-          })}
-        </div>
-        <div className={styles.legend}>
-          <span className={styles.legendLabel}>Low</span>
-          <div className={styles.legendScale}>
-            {[0, 1, 2, 3, 4].map((level) => (
-              <span key={level} className={`${styles.cell} ${styles[`level${level}`]}`} />
-            ))}
-          </div>
-          <span className={styles.legendLabel}>High</span>
-        </div>
+      <div className={styles.chartWrap}>
+        <ResponsiveCalendar
+          data={calendarData}
+          from={calendarData[0].day}
+          to={calendarData[calendarData.length - 1].day}
+          emptyColor="rgba(255,255,255,0.05)"
+          colors={['rgba(45, 212, 191, 0.2)', 'rgba(52, 211, 153, 0.3)', 'rgba(245, 158, 11, 0.35)', 'rgba(239, 68, 68, 0.4)']}
+          margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+          yearSpacing={40}
+          monthBorderColor="rgba(255,255,255,0.05)"
+          dayBorderWidth={1}
+          dayBorderColor="rgba(255,255,255,0.04)"
+          theme={{
+            text: {
+              fill: '#94a3b8',
+              fontSize: 10,
+            },
+            tooltip: {
+              container: {
+                background: 'rgba(6, 12, 16, 0.92)',
+                color: '#e8f5f3',
+                fontSize: 12,
+                borderRadius: 8,
+                border: '1px solid rgba(45, 212, 191, 0.2)',
+                padding: '6px 10px',
+              },
+            },
+          }}
+        />
       </div>
     </Card>
   );

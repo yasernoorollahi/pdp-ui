@@ -1,0 +1,81 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 320px;
+  animation: cardIn 0.5s ease both;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-white);
+  margin-top: 0.35rem;
+}
+
+.headerNote {
+  font-size: 0.75rem;
+  color: var(--color-text-slate);
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+}
+
+.chartWrap {
+  height: 220px;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltipLabel {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.tooltipValue {
+  font-size: 0.85rem;
+  color: var(--color-text-white);
+}
+
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 0;
+}
+
+.stateTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-white);
+}
+
+.stateHint {
+  font-size: 0.8rem;
+  color: var(--color-text-slate);
+}
+
+.skeletonLine {
+  height: 46px;
+}

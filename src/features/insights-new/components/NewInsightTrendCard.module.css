@@ -64,36 +64,7 @@
 
 .sparklineWrap {
   position: relative;
-}
-
-.sparkline {
-  width: 100%;
   height: 110px;
-}
-
-.sparklinePath {
-  fill: none;
-  stroke-width: 2.4;
-}
-
-.sparklinePath.energy {
-  stroke: var(--color-teal);
-  filter: drop-shadow(0 0 6px var(--color-teal-35));
-}
-
-.sparklinePath.motivation {
-  stroke: var(--color-emerald);
-  filter: drop-shadow(0 0 6px var(--color-emerald-35));
-}
-
-.sparklinePath.social {
-  stroke: var(--color-blue);
-  filter: drop-shadow(0 0 6px var(--color-blue-35));
-}
-
-.sparklinePath.discipline {
-  stroke: var(--color-purple);
-  filter: drop-shadow(0 0 6px var(--color-purple-35));
 }
 
 .stateBlock {
