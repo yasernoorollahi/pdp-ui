@@ -102,7 +102,7 @@ export const UserChatPanel = () => {
         </Button>
       </header>
 
-      <Card className={styles.chatCard} topLine>
+      <Card className={styles.chatCard}>
         <div className={styles.threadArea}>
           {loading ? <ChatThreadSkeleton /> : null}
 
@@ -128,13 +128,15 @@ export const UserChatPanel = () => {
           {!loading && !error && hasMessages ? <ChatMessageList messages={messages} /> : null}
         </div>
 
-        <ChatComposer
-          value={inputValue}
-          onChange={setInputValue}
-          onSend={() => void sendMessage()}
-          disabled={loading}
-          sending={sending}
-        />
+        <div className={styles.composerWrap}>
+          <ChatComposer
+            value={inputValue}
+            onChange={setInputValue}
+            onSend={() => void sendMessage()}
+            disabled={loading}
+            sending={sending}
+          />
+        </div>
       </Card>
     </section>
   );

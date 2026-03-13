@@ -17,6 +17,9 @@
   padding: 0.72rem 0.88rem 0.58rem;
   border: 1px solid transparent;
   position: relative;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
 .bubbleUser {
@@ -26,13 +29,31 @@
     rgba(45, 212, 191, 0.16),
     rgba(255, 255, 255, 0.035)
   );
-  border-color: var(--color-border-glass);
-  box-shadow: 0 8px 24px rgba(3, 14, 18, 0.35);
+  border-color: rgba(94, 234, 212, 0.35);
+  box-shadow:
+    0 14px 30px rgba(3, 14, 18, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .bubbleSystem {
-  background: rgba(255, 255, 255, 0.045);
-  border-color: var(--color-border-subtle);
+  background: rgba(9, 18, 22, 0.55);
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow:
+    0 8px 20px rgba(3, 10, 14, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.messageBubble::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    130deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0)
+  );
+  opacity: 0.2;
+  pointer-events: none;
 }
 
 .messageText {

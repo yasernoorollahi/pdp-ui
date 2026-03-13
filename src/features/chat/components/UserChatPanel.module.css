@@ -1,13 +1,12 @@
 .chatSection {
   display: grid;
   gap: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 .chatHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  display: none;
 }
 
 .chatTitle {
@@ -31,20 +30,76 @@
 .chatCard {
   display: grid;
   grid-template-rows: 1fr auto;
-  gap: 0.9rem;
+  gap: 3rem;
   height: min(72vh, 680px);
   max-height: min(72vh, 680px);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 0;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.14), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(94, 234, 212, 0.18), transparent 40%),
+    radial-gradient(circle at 80% 85%, rgba(13, 148, 136, 0.22), transparent 45%),
+    linear-gradient(160deg, #08151c 0%, #060f14 55%, #050b10 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 30px 80px rgba(3, 8, 12, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.chatCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.2), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.16), transparent 50%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.55));
+  opacity: 0.45;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.chatCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 20% 10%, rgba(255, 255, 255, 0.18), transparent 55%),
+    radial-gradient(120% 80% at 80% 20%, rgba(45, 212, 191, 0.22), transparent 60%),
+    radial-gradient(120% 80% at 10% 80%, rgba(13, 148, 136, 0.2), transparent 60%);
+  filter: blur(24px) saturate(130%);
+  opacity: 0.65;
+  animation: liquidFlow 14s ease-in-out infinite;
+  z-index: 1;
 }
 
 .threadArea {
   min-height: 0;
   height: 100%;
-  border-radius: 18px;
-  border: 1px solid var(--color-border-subtle);
-  background: rgba(6, 12, 16, 0.48);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 1.6rem;
+  margin: 1.6rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    rgba(7, 14, 18, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 26px;
   overflow: hidden;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+.composerWrap {
+  position: relative;
+  width: min(72%, 720px);
+  margin: 0 auto 2.8rem;
+  z-index: 4;
+  pointer-events: auto;
 }
 
 .stateWrap {
@@ -70,13 +125,33 @@
 }
 
 @media (max-width: 768px) {
-  .chatHeader {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .chatCard {
     height: min(78vh, 720px);
     max-height: min(78vh, 720px);
+  }
+
+  .threadArea {
+    margin: 1.1rem;
+    border-radius: 22px;
+  }
+
+  .composerWrap {
+    width: min(88%, 520px);
+    margin-bottom: 2rem;
+  }
+}
+
+@keyframes liquidFlow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  45% {
+    transform: translate3d(4%, -5%, 0) scale(1.04);
+  }
+  75% {
+    transform: translate3d(-5%, 4%, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
