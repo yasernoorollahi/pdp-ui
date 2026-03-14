@@ -13,6 +13,8 @@ const buildOptimisticMessage = (text: string): ChatMessage => ({
   sender: 'USER',
   createdAt: new Date().toISOString(),
   status: 'sending',
+  signalDecision: null,
+  processingStatus: null,
 });
 
 export const UserChatPanel = () => {

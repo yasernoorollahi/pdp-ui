@@ -1,4 +1,4 @@
-import { MessageStatusTick } from '../../../components/ui';
+import { Badge, MessageStatusTick } from '../../../components/ui';
 import type { ChatMessage } from '../types/chat.types';
 import styles from './ChatMessageItem.module.css';
 
@@ -17,6 +17,18 @@ const formatTime = (isoDate: string) => {
 
 export const ChatMessageItem = ({ message }: ChatMessageItemProps) => {
   const isUserMessage = message.sender === 'USER';
+  const signalDecision = message.signalDecision?.toUpperCase() ?? null;
+  const processingStatus = message.processingStatus?.toUpperCase() ?? null;
+  const showProcessingStatus = isUserMessage && message.status === 'sent';
+
+  const processingBadge = (() => {
+    if (!showProcessingStatus) return null;
+    if (signalDecision === 'IGNORE') return null;
+    if (signalDecision === 'USEFUL' && processingStatus === 'DONE') {
+      return { variant: 'emerald', icon: '✨' };
+    }
+    return { variant: 'gold', icon: '⏳' };
+  })();
 
   return (
     <article className={`${styles.messageRow} ${isUserMessage ? styles.rowUser : styles.rowSystem}`}>
@@ -25,6 +37,13 @@ export const ChatMessageItem = ({ message }: ChatMessageItemProps) => {
         <div className={styles.metaRow}>
           <span className={styles.messageTime}>{formatTime(message.createdAt)}</span>
           {isUserMessage ? <MessageStatusTick status={message.status} /> : null}
+          {processingBadge ? (
+            <Badge variant={processingBadge.variant} className={styles.processingBadge}>
+              <span className={styles.processingIcon} aria-hidden="true">
+                {processingBadge.icon}
+              </span>
+            </Badge>
+          ) : null}
         </div>
       </div>
     </article>

@@ -16,6 +16,10 @@ type RawMessage = {
   timestamp?: string;
   processed?: boolean;
   status?: string;
+  signalDecision?: string | null;
+  signal_decision?: string | null;
+  processingStatus?: string | null;
+  processing_status?: string | null;
 };
 
 type MessagesPayload = {
@@ -77,12 +81,26 @@ const normalizeMessage = (message: RawMessage, fallbackText = ''): ChatMessage =
       ? normalizedStatus
       : 'sent';
 
+  const normalizeNullableText = (value: unknown) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+    return String(value);
+  };
+
+  const signalDecision = normalizeNullableText(message.signalDecision ?? message.signal_decision);
+  const processingStatus = normalizeNullableText(message.processingStatus ?? message.processing_status);
+
   return {
     id: message.id ? String(message.id) : generateMessageId(),
     text: message.text ?? message.message ?? message.content ?? fallbackText,
     sender: message.sender?.toUpperCase() === 'SYSTEM' ? 'SYSTEM' : 'USER',
     createdAt: message.createdAt ?? message.created_at ?? message.timestamp ?? new Date().toISOString(),
     status,
+    signalDecision,
+    processingStatus,
   };
 };
 

@@ -80,6 +80,18 @@
   letter-spacing: 0.02em;
 }
 
+.processingBadge {
+  text-transform: uppercase;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  padding: 0.14rem 0.5rem;
+}
+
+.processingIcon {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
 @keyframes messageIn {
   from {
     transform: translateY(8px) scale(0.99);
