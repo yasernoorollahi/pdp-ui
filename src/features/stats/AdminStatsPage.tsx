@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { systemService } from '../../services/system.service';
+import { pdpMetricsService, type PdpMetric } from '../../services/pdpMetrics.service';
 import { usePolling } from '../../hooks/usePolling';
 import type { SystemOverview, JobLog, SystemStats, OverviewData } from '../../services/system.service';
+import { PdpMetricsTab } from './pdp-metrics/PdpMetricsTab';
 import styles from './AdminStatsPage.module.css';
 
-type TabType = 'stats' | 'overview' | 'jobs';
+type TabType = 'stats' | 'overview' | 'jobs' | 'pdp';
 
 const formatUptime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -767,24 +769,47 @@ export const AdminStatsPage = () => {
     const [prevJobs, setPrevJobs] = useState<JobLog[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [pdpMetrics, setPdpMetrics] = useState<PdpMetric[]>([]);
+    const [pdpLoading, setPdpLoading] = useState(true);
+    const [pdpError, setPdpError] = useState<string | null>(null);
+    const [pdpUpdatedAt, setPdpUpdatedAt] = useState<string | null>(null);
+
+    const getErrorMessage = (err: unknown, fallback: string) => {
+        if (axios.isAxiosError(err)) {
+            return err.response?.data?.message || fallback;
+        }
+        return fallback;
+    };
 
     const fetchAll = async () => {
-        try {
-            setError(null);
-            const response = await systemService.getSystemOverview();
+        setLoading(true);
+        setPdpLoading(true);
+        setError(null);
+        setPdpError(null);
+
+        const [overviewResult, metricsResult] = await Promise.allSettled([
+            systemService.getSystemOverview(),
+            pdpMetricsService.getPdpMetrics(),
+        ]);
+
+        if (overviewResult.status === 'fulfilled') {
             setData(prev => {
                 setPrevJobs(prev?.recentJobs ?? null);
-                return response;
+                return overviewResult.value;
             });
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.message || 'Failed to fetch system data');
-            } else {
-                setError('Failed to fetch system data');
-            }
-        } finally {
-            setLoading(false);
+        } else {
+            setError(getErrorMessage(overviewResult.reason, 'Failed to fetch system data'));
         }
+
+        if (metricsResult.status === 'fulfilled') {
+            setPdpMetrics(metricsResult.value);
+            setPdpUpdatedAt(new Date().toISOString());
+        } else {
+            setPdpError(getErrorMessage(metricsResult.reason, 'Failed to fetch PDP metrics'));
+        }
+
+        setLoading(false);
+        setPdpLoading(false);
     };
 
     usePolling(fetchAll, 10000);
@@ -838,6 +863,15 @@ export const AdminStatsPage = () => {
                         <span className={styles.tabDotRed} />
                     )}
                 </button>
+                <button
+                    className={`${styles.tabBtn} ${activeTab === 'pdp' ? styles.tabBtnActive : ''}`}
+                    onClick={() => setActiveTab('pdp')}
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    PDP Metrics
+                </button>
             </div>
 
             {loading && !data ? (
@@ -861,6 +895,15 @@ export const AdminStatsPage = () => {
                     {activeTab === 'stats'    && <StatsTab stats={data.businessStats} />}
                     {activeTab === 'overview' && <OverviewTab data={data.system} />}
                     {activeTab === 'jobs'     && <JobsTab jobs={data.recentJobs} prevJobs={prevJobs} />}
+                    {activeTab === 'pdp'      && (
+                        <PdpMetricsTab
+                            metrics={pdpMetrics}
+                            loading={pdpLoading}
+                            error={pdpError}
+                            updatedAt={pdpUpdatedAt}
+                            onRetry={fetchAll}
+                        />
+                    )}
                 </div>
             ) : null}
         </div>

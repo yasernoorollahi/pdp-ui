@@ -1,0 +1,190 @@
+.tabWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.summaryIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summaryTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.summarySubtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0.2rem 0 0;
+}
+
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.summaryStat {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.summaryValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.3rem;
+}
+
+.summaryLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+}
+
+.summaryTime {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.sectionMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.sectionBadge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.6);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+
+.emptyState,
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+}
+
+.stateTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: inherit;
+}
+
+.stateText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  max-width: 420px;
+}
+
+.errorState .stateText {
+  color: #fca5a5;
+}
+
+.errorState {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.25);
+  background: rgba(127, 29, 29, 0.18);
+}
+
+.errorButton {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.errorButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -10px rgba(239, 68, 68, 0.8);
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+
+.skeletonCard {
+  height: 160px;
+  border-radius: 16px;
+}
+
+@media (max-width: 900px) {
+  .summaryStats {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
