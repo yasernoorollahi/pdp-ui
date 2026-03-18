@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { systemService } from '../../services/system.service';
-import { pdpMetricsService, type PdpMetric } from '../../services/pdpMetrics.service';
+import type { PdpMetric } from '../../services/pdpMetrics.service';
+import { pdpMetricsDashboardService } from '../../services/pdpMetricsDashboard.service';
 import { usePolling } from '../../hooks/usePolling';
 import type { SystemOverview, JobLog, SystemStats, OverviewData } from '../../services/system.service';
 import { PdpMetricsTab } from './pdp-metrics/PdpMetricsTab';
@@ -789,7 +790,7 @@ export const AdminStatsPage = () => {
 
         const [overviewResult, metricsResult] = await Promise.allSettled([
             systemService.getSystemOverview(),
-            pdpMetricsService.getPdpMetrics(),
+            pdpMetricsDashboardService.getBundle(),
         ]);
 
         if (overviewResult.status === 'fulfilled') {
@@ -802,8 +803,8 @@ export const AdminStatsPage = () => {
         }
 
         if (metricsResult.status === 'fulfilled') {
-            setPdpMetrics(metricsResult.value);
-            setPdpUpdatedAt(new Date().toISOString());
+            setPdpMetrics(metricsResult.value.metrics);
+            setPdpUpdatedAt(metricsResult.value.updatedAt);
         } else {
             setPdpError(getErrorMessage(metricsResult.reason, 'Failed to fetch PDP metrics'));
         }

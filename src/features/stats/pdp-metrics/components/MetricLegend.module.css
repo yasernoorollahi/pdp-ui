@@ -1,0 +1,27 @@
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.series0 { background: #38bdf8; }
+.series1 { background: #fbbf24; }
+.series2 { background: #f472b6; }
+.series3 { background: #34d399; }
+.series4 { background: #818cf8; }
