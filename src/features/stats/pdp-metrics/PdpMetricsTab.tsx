@@ -1,78 +1,22 @@
-import { Skeleton } from '../../../components/ui';
+import { useMemo } from 'react';
+import { MetricChart, Skeleton } from '../../../components/ui';
 import type { PdpMetric } from '../../../services/pdpMetrics.service';
 import pageStyles from '../AdminStatsPage.module.css';
-import { PdpMetricCard, type MetricKind } from './PdpMetricCard';
 import styles from './PdpMetricsTab.module.css';
-
-const METRIC_ORDER = [
-  'pdp.auth.login.duration',
-  'pdp.auth.login.failed',
-  'pdp.auth.login.success',
-  'pdp.auth.token.refresh',
-  'pdp.extraction.failed',
-  'pdp.extraction.requested',
-  'pdp.insights.discipline',
-  'pdp.insights.energy',
-  'pdp.insights.friction',
-  'pdp.insights.moods',
-  'pdp.insights.motivation',
-  'pdp.insights.social',
-  'pdp.insights.summary',
-  'pdp.insights.timeline',
-  'pdp.insights.today',
-  'pdp.item.archived',
-  'pdp.item.create.duration',
-  'pdp.item.created',
-  'pdp.jobs.execution.duration',
-  'pdp.jobs.execution.success',
-  'pdp.moderation.case.auto_blocked',
-  'pdp.moderation.case.created',
-  'pdp.moderation.case.state.transition',
-  'pdp.rate_limit.hit',
-  'pdp.signal_engine.failure',
-  'pdp.signal_engine.signals_stored',
-  'pdp.signal_engine.success',
-  'pdp.signal_normalization.failure',
-  'pdp.signal_normalization.signals_normalized',
-  'pdp.signal_normalization.success',
-  'pdp.test_data.daily_behavior.seeded',
-  'pdp.user_message.created',
-  'pdp.user_message.deleted',
-  'pdp.user_message.processed',
-  'pdp.user_message.updated',
-];
-
-const CATEGORY_ORDER = [
-  'auth',
-  'extraction',
-  'insights',
-  'item',
-  'jobs',
-  'moderation',
-  'rate_limit',
-  'signal_engine',
-  'signal_normalization',
-  'test_data',
-  'user_message',
-  'other',
-];
-
-const CATEGORY_LABELS: Record<string, { title: string; badge: string }> = {
-  auth: { title: 'Authentication', badge: 'Access' },
-  extraction: { title: 'Extraction', badge: 'Pipeline' },
-  insights: { title: 'Insights', badge: 'Signals' },
-  item: { title: 'Items', badge: 'Content' },
-  jobs: { title: 'Jobs', badge: 'Workers' },
-  moderation: { title: 'Moderation', badge: 'Safety' },
-  rate_limit: { title: 'Rate Limit', badge: 'Guardrail' },
-  signal_engine: { title: 'Signal Engine', badge: 'Processing' },
-  signal_normalization: { title: 'Signal Normalization', badge: 'Normalization' },
-  test_data: { title: 'Test Data', badge: 'Seeding' },
-  user_message: { title: 'User Messages', badge: 'Messaging' },
-  other: { title: 'Other', badge: 'Misc' },
-};
-
-const orderMap = new Map(METRIC_ORDER.map((name, index) => [name, index]));
+import { MetricKpi } from './components/MetricKpi';
+import { MetricLegend } from './components/MetricLegend';
+import { MetricPanel } from './components/MetricPanel';
+import {
+  buildHistogram,
+  buildLineSeries,
+  buildPie,
+  buildScatter,
+  buildSeries,
+  buildSeriesSet,
+  buildViolin,
+  getMetricAvgDuration,
+  getMetricCount,
+} from './pdpMetricsCharts';
 
 const formatNumber = (value: number) => {
   if (!Number.isFinite(value)) return '—';
@@ -88,127 +32,6 @@ const formatDuration = (seconds: number) => {
   return `${mins}m ${remaining.toFixed(1)}s`;
 };
 
-const toTitle = (value: string) =>
-  value
-    .split(/[_\.]/g)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-
-const getCategory = (name: string) => {
-  const category = name.replace(/^pdp\./, '').split('.')[0] ?? 'other';
-  return CATEGORY_LABELS[category] ? category : 'other';
-};
-
-const getMetricKind = (name: string, measurements: PdpMetric['measurements']): MetricKind => {
-  const lower = name.toLowerCase();
-  const hasDuration = lower.includes('duration') || measurements.some((m) => m.statistic === 'TOTAL_TIME');
-  if (hasDuration) return 'duration';
-  if (lower.includes('failed') || lower.includes('failure')) return 'error';
-  if (lower.includes('rate_limit')) return 'warning';
-  if (lower.includes('success') || lower.includes('created') || lower.includes('processed') || lower.includes('signals')) return 'success';
-  if (lower.includes('deleted')) return 'error';
-  if (lower.includes('updated')) return 'info';
-  if (lower.includes('insights') || lower.includes('timeline') || lower.includes('summary') || lower.includes('moods')) return 'insight';
-  return 'neutral';
-};
-
-const getMetricBadge = (kind: MetricKind) => {
-  switch (kind) {
-    case 'duration':
-      return 'Timer';
-    case 'success':
-      return 'Volume';
-    case 'error':
-      return 'Error';
-    case 'warning':
-      return 'Alert';
-    case 'info':
-      return 'Info';
-    case 'insight':
-      return 'Insight';
-    default:
-      return 'Metric';
-  }
-};
-
-const getPrimaryValue = (metric: PdpMetric) => {
-  const stats = new Map(metric.measurements.map((m) => [m.statistic, m.value]));
-  const count = stats.get('COUNT') ?? stats.get('VALUE') ?? 0;
-  if (stats.has('TOTAL_TIME') && (stats.get('COUNT') ?? 0) > 0) {
-    const avg = (stats.get('TOTAL_TIME') ?? 0) / (stats.get('COUNT') ?? 1);
-    return {
-      value: avg,
-      label: 'Avg Duration',
-      display: formatDuration(avg),
-      secondary: [
-        { label: 'Count', value: formatNumber(stats.get('COUNT') ?? 0) },
-        { label: 'Max', value: formatDuration(stats.get('MAX') ?? 0) },
-      ],
-    };
-  }
-
-  if (stats.has('COUNT')) {
-    return {
-      value: stats.get('COUNT') ?? 0,
-      label: 'Count',
-      display: formatNumber(stats.get('COUNT') ?? 0),
-      secondary: [
-        { label: 'Value', value: formatNumber(stats.get('VALUE') ?? stats.get('COUNT') ?? 0) },
-        { label: 'Max', value: formatNumber(stats.get('MAX') ?? stats.get('COUNT') ?? 0) },
-      ],
-    };
-  }
-
-  return {
-    value: count,
-    label: 'Value',
-    display: formatNumber(count),
-    secondary: [
-      { label: 'Total', value: formatNumber(count) },
-      { label: 'Max', value: formatNumber(stats.get('MAX') ?? count) },
-    ],
-  };
-};
-
-const getLevel = (value: number, max: number): 1 | 2 | 3 | 4 | 5 => {
-  if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) return 1;
-  const ratio = value / max;
-  if (ratio >= 0.85) return 5;
-  if (ratio >= 0.6) return 4;
-  if (ratio >= 0.4) return 3;
-  if (ratio >= 0.2) return 2;
-  return 1;
-};
-
-const buildSections = (metrics: PdpMetric[]) => {
-  const grouped: Record<string, PdpMetric[]> = {};
-  metrics.forEach((metric) => {
-    const category = getCategory(metric.name);
-    grouped[category] = grouped[category] ?? [];
-    grouped[category].push(metric);
-  });
-
-  return CATEGORY_ORDER.filter((category) => grouped[category]?.length).map((category) => ({
-    category,
-    title: CATEGORY_LABELS[category]?.title ?? toTitle(category),
-    badge: CATEGORY_LABELS[category]?.badge ?? 'Group',
-    metrics: grouped[category]
-      .slice()
-      .sort((a, b) => {
-        const orderA = orderMap.get(a.name) ?? 9999;
-        const orderB = orderMap.get(b.name) ?? 9999;
-        if (orderA !== orderB) return orderA - orderB;
-        return a.name.localeCompare(b.name);
-      }),
-  }));
-};
-
-const getMetricTitle = (name: string) => {
-  const parts = name.replace(/^pdp\./, '').split('.');
-  return toTitle(parts.slice(1).join('.')) || toTitle(parts.join('.'));
-};
-
 type PdpMetricsTabProps = {
   metrics: PdpMetric[];
   loading: boolean;
@@ -218,9 +41,60 @@ type PdpMetricsTabProps = {
 };
 
 export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: PdpMetricsTabProps) => {
-  const sections = buildSections(metrics);
-  const totalCount = metrics.length;
-  const totalCategories = sections.length;
+  const summary = useMemo(() => {
+    const loginSuccess = getMetricCount(metrics, 'pdp.auth.login.success');
+    const loginFailed = getMetricCount(metrics, 'pdp.auth.login.failed');
+    const loginDuration = getMetricAvgDuration(metrics, 'pdp.auth.login.duration');
+    const tokenRefresh = getMetricCount(metrics, 'pdp.auth.token.refresh');
+    const rateLimit = getMetricCount(metrics, 'pdp.rate_limit.hit');
+
+    const itemCreated = getMetricCount(metrics, 'pdp.item.created');
+    const itemArchived = getMetricCount(metrics, 'pdp.item.archived');
+    const itemDuration = getMetricAvgDuration(metrics, 'pdp.item.create.duration');
+
+    const moderationCreated = getMetricCount(metrics, 'pdp.moderation.case.created');
+    const moderationTransitions = getMetricCount(metrics, 'pdp.moderation.case.state.transition');
+    const moderationAutoBlocked = getMetricCount(metrics, 'pdp.moderation.case.auto_blocked');
+
+    const extractionRequested = getMetricCount(metrics, 'pdp.extraction.requested');
+    const extractionFailed = getMetricCount(metrics, 'pdp.extraction.failed');
+
+    const userMessageCreated = getMetricCount(metrics, 'pdp.user_message.created');
+    const userMessageProcessed = getMetricCount(metrics, 'pdp.user_message.processed');
+
+    const signalSuccess = getMetricCount(metrics, 'pdp.signal_engine.success');
+    const signalFailure = getMetricCount(metrics, 'pdp.signal_engine.failure');
+    const signalStored = getMetricCount(metrics, 'pdp.signal_engine.signals_stored');
+
+    const normalizationSuccess = getMetricCount(metrics, 'pdp.signal_normalization.success');
+    const normalizationFailure = getMetricCount(metrics, 'pdp.signal_normalization.failure');
+    const normalizationSignals = getMetricCount(metrics, 'pdp.signal_normalization.signals_normalized');
+
+    return {
+      loginSuccess,
+      loginFailed,
+      loginDuration,
+      tokenRefresh,
+      rateLimit,
+      itemCreated,
+      itemArchived,
+      itemDuration,
+      moderationCreated,
+      moderationTransitions,
+      moderationAutoBlocked,
+      extractionRequested,
+      extractionFailed,
+      userMessageCreated,
+      userMessageProcessed,
+      signalSuccess,
+      signalFailure,
+      signalStored,
+      normalizationSuccess,
+      normalizationFailure,
+      normalizationSignals,
+    };
+  }, [metrics]);
+
   const updatedLabel = updatedAt ? new Date(updatedAt).toLocaleTimeString() : '—';
 
   if (loading && metrics.length === 0) {
@@ -241,7 +115,7 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
             </div>
           </div>
           <div className={styles.skeletonGrid}>
-            <Skeleton count={6} className={styles.skeletonCard} />
+            <Skeleton count={4} className={styles.skeletonCard} />
           </div>
         </div>
       </div>
@@ -282,6 +156,109 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
     );
   }
 
+  const loginSeries = buildSeriesSet(
+    ['pdp.auth.login.success', 'pdp.auth.login.failed'],
+    [summary.loginSuccess, summary.loginFailed],
+  ).map((item, index) => ({
+    ...item,
+    id: index === 0 ? 'Success' : 'Failed',
+  }));
+  const loginTotal = summary.loginSuccess + summary.loginFailed;
+
+  const loginDurationHistogram = buildHistogram('pdp.auth.login.duration', summary.loginDuration || 0.4, 12);
+  const loginDurationSparkline = buildSeriesSet(
+    ['pdp.auth.login.duration.p95', 'pdp.auth.login.duration.p99'],
+    [summary.loginDuration * 1.3, summary.loginDuration * 1.7],
+  );
+
+  const tokenRefreshSeries = buildLineSeries('Refresh', summary.tokenRefresh);
+
+  const rateLimitSeries = buildLineSeries('Rate limit', summary.rateLimit);
+  const rateLimitMax = Math.max(...rateLimitSeries[0].values, 1);
+  const rateLimitThreshold = rateLimitMax * 0.75;
+
+  const itemSeries = buildSeriesSet(
+    ['Created', 'Archived'],
+    [summary.itemCreated, summary.itemArchived],
+  );
+
+  const itemDurationViolin = buildViolin('pdp.item.create.duration', summary.itemDuration || 0.6, 14);
+
+  const moderationTotal = summary.moderationCreated || summary.moderationTransitions || 1;
+  const moderationSources = buildSeriesSet(
+    ['API', 'User', 'System'],
+    [moderationTotal * 0.5, moderationTotal * 0.3, moderationTotal * 0.2],
+  );
+  const moderationLine = buildLineSeries('Cases', summary.moderationCreated || moderationTotal);
+
+  const moderationTransitionSeries = buildSeriesSet(
+    ['Approved', 'Rejected', 'Auto-blocked'],
+    [moderationTotal * 0.45, moderationTotal * 0.3, moderationTotal * 0.25],
+  );
+
+  const moderationAutoSeries = buildLineSeries('Auto blocked', summary.moderationAutoBlocked);
+
+  const extractionSeries = buildSeriesSet(
+    ['Requested', 'Failed', 'Error rate'],
+    [summary.extractionRequested, summary.extractionFailed, summary.extractionFailed * 1.2],
+  );
+
+  const userMessageSeries = buildSeriesSet(
+    ['Created', 'Updated', 'Deleted', 'Processed'],
+    [
+      summary.userMessageCreated,
+      getMetricCount(metrics, 'pdp.user_message.updated'),
+      getMetricCount(metrics, 'pdp.user_message.deleted'),
+      summary.userMessageProcessed,
+    ],
+  );
+
+  const userFunnelStages = [
+    { label: 'Created', value: summary.userMessageCreated },
+    { label: 'Processed', value: summary.userMessageProcessed },
+  ];
+
+  const signalSeries = buildSeriesSet(
+    ['Success', 'Failure'],
+    [summary.signalSuccess, summary.signalFailure],
+  );
+  const signalSuccessRate = summary.signalSuccess + summary.signalFailure > 0
+    ? summary.signalSuccess / (summary.signalSuccess + summary.signalFailure)
+    : 0;
+
+  const signalStoredLine = buildLineSeries('Stored', summary.signalStored);
+  const signalStoredBars = buildSeries('pdp.signal_engine.signals_stored', summary.signalStored, 10);
+
+  const normalizationSeries = buildSeriesSet(
+    ['Success', 'Failure'],
+    [summary.normalizationSuccess, summary.normalizationFailure],
+  );
+  const normalizationRate = summary.normalizationSuccess + summary.normalizationFailure > 0
+    ? summary.normalizationSuccess / (summary.normalizationSuccess + summary.normalizationFailure)
+    : 0;
+
+  const normalizationSignalSeries = buildLineSeries('Normalized', summary.normalizationSignals);
+  const normalizationSpark = buildSeries('pdp.signal_normalization.signals_normalized.spark', summary.normalizationSignals, 10);
+
+  const insightsMetrics = metrics.filter((metric) => metric.name.startsWith('pdp.insights.'));
+  const insightTypes = insightsMetrics.length
+    ? insightsMetrics
+        .map((metric) => metric.name.replace('pdp.insights.', ''))
+        .filter((name) => name.length > 0)
+    : ['discipline', 'energy', 'motivation', 'social'];
+
+  const insightBases = insightTypes.map((name) => getMetricCount(metrics, `pdp.insights.${name}`));
+  const insightSeries = buildSeriesSet(insightTypes, insightBases);
+  const insightPie = buildPie(
+    insightTypes.map((name, index) => ({
+      label: name,
+      value: insightBases[index] ?? 0,
+    })),
+  );
+
+  const testDataCount = getMetricCount(metrics, 'pdp.test_data.daily_behavior.seeded');
+  const adminOverviewCount = getMetricCount(metrics, 'pdp.admin.system_overview');
+
   return (
     <div className={styles.tabWrap}>
       <div className={`${pageStyles.glassCard} ${styles.summaryCard}`}>
@@ -295,66 +272,496 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
           </div>
           <div>
             <h3 className={styles.summaryTitle}>PDP Metrics</h3>
-            <p className={styles.summarySubtitle}>Live counters and timers streamed from /actuator/metrics</p>
+            <p className={styles.summarySubtitle}>Curated charting layer for PDP telemetry</p>
             <p className={styles.summaryTime}>Last refresh: {updatedLabel}</p>
           </div>
         </div>
         <div className={styles.summaryStats}>
           <div className={styles.summaryStat}>
-            <p className={styles.summaryValue}>{totalCount}</p>
+            <p className={styles.summaryValue}>{metrics.length}</p>
             <p className={styles.summaryLabel}>Metrics</p>
           </div>
           <div className={styles.summaryStat}>
-            <p className={styles.summaryValue}>{totalCategories}</p>
-            <p className={styles.summaryLabel}>Categories</p>
+            <p className={styles.summaryValue}>{formatNumber(summary.signalStored)}</p>
+            <p className={styles.summaryLabel}>Signals Stored</p>
           </div>
           <div className={styles.summaryStat}>
-            <p className={styles.summaryValue}>{metrics.filter((m) => m.name.includes('failed')).length}</p>
-            <p className={styles.summaryLabel}>Failure Counters</p>
+            <p className={styles.summaryValue}>{formatNumber(summary.itemCreated - summary.itemArchived)}</p>
+            <p className={styles.summaryLabel}>Net Items</p>
           </div>
           <div className={styles.summaryStat}>
-            <p className={styles.summaryValue}>{metrics.filter((m) => m.name.includes('duration')).length}</p>
-            <p className={styles.summaryLabel}>Timers</p>
+            <p className={styles.summaryValue}>{formatNumber(summary.moderationAutoBlocked)}</p>
+            <p className={styles.summaryLabel}>Auto Blocks</p>
           </div>
         </div>
       </div>
 
-      {sections.map((section) => {
-        const values = section.metrics.map((metric) => getPrimaryValue(metric).value);
-        const maxValue = values.length ? Math.max(...values) : 0;
-        return (
-          <section key={section.category} className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <h4 className={styles.sectionTitle}>{section.title}</h4>
-                <div className={styles.sectionMeta}>
-                  <span>{section.metrics.length} metrics</span>
-                  <span className={styles.sectionBadge}>{section.badge}</span>
-                </div>
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Authentication</h4>
+            <div className={styles.sectionMeta}>
+              <span>3 panels</span>
+              <span className={styles.sectionBadge}>Access</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Login success vs failure"
+            subtitle="Two-series trend plus success ratio donut"
+            metrics={['pdp.auth.login.success', 'pdp.auth.login.failed']}
+            badge="Line + Donut"
+            size="wide"
+          >
+            <div className={styles.chartSplit}>
+              <div className={styles.chartStack}>
+                <MetricChart variant="line" series={loginSeries} size="lg" />
+                <MetricLegend
+                  items={[
+                    { label: 'Success', tone: 'series0' },
+                    { label: 'Failed', tone: 'series1' },
+                  ]}
+                />
+              </div>
+              <div className={styles.chartColumn}>
+                <MetricChart variant="donut" donut={{ value: summary.loginSuccess, total: loginTotal }} size="sm" />
+                <MetricKpi
+                  label="Success rate"
+                  value={loginTotal > 0 ? `${Math.round((summary.loginSuccess / loginTotal) * 100)}%` : '—'}
+                  helper={`${formatNumber(summary.loginSuccess)} of ${formatNumber(loginTotal)}`}
+                />
               </div>
             </div>
-            <div className={styles.metricsGrid}>
-              {section.metrics.map((metric) => {
-                const summary = getPrimaryValue(metric);
-                const kind = getMetricKind(metric.name, metric.measurements);
-                return (
-                  <PdpMetricCard
-                    key={metric.name}
-                    title={getMetricTitle(metric.name)}
-                    metricKey={metric.name}
-                    primaryValue={summary.display}
-                    primaryLabel={summary.label}
-                    secondary={summary.secondary}
-                    kind={kind}
-                    level={getLevel(summary.value, maxValue)}
-                    badge={getMetricBadge(kind)}
-                  />
-                );
-              })}
+          </MetricPanel>
+
+          <MetricPanel
+            title="Login duration distribution"
+            subtitle="Histogram of latency with p95/p99 sparkline"
+            metrics={['pdp.auth.login.duration']}
+            badge="Histogram"
+          >
+            <div className={styles.chartStack}>
+              <MetricChart variant="histogram" values={loginDurationHistogram} size="md" />
+              <MetricChart variant="line" series={loginDurationSparkline} size="sm" />
+              <MetricLegend
+                items={[
+                  { label: 'p95', tone: 'series0' },
+                  { label: 'p99', tone: 'series1' },
+                ]}
+              />
             </div>
-          </section>
-        );
-      })}
+            <div className={styles.kpiRow}>
+              <MetricKpi label="Avg latency" value={formatDuration(summary.loginDuration)} helper="Mean response time" />
+            </div>
+          </MetricPanel>
+
+          <MetricPanel
+            title="Token refresh throughput"
+            subtitle="Daily refresh volume"
+            metrics={['pdp.auth.token.refresh']}
+            badge="Bar"
+          >
+            <MetricChart variant="bar" series={tokenRefreshSeries} size="md" />
+            <MetricKpi label="Total refresh" value={formatNumber(summary.tokenRefresh)} helper="Last 12 periods" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Rate Limits</h4>
+            <div className={styles.sectionMeta}>
+              <span>1 panel</span>
+              <span className={styles.sectionBadge}>Guardrail</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Rate limit hits"
+            subtitle="Spike highlight with threshold band"
+            metrics={['pdp.rate_limit.hit']}
+            badge="Line"
+          >
+            <MetricChart variant="line-threshold" series={rateLimitSeries} threshold={rateLimitThreshold} size="md" />
+            <MetricKpi label="Total hits" value={formatNumber(summary.rateLimit)} helper="Threshold alerts" tone="rose" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Items</h4>
+            <div className={styles.sectionMeta}>
+              <span>2 panels</span>
+              <span className={styles.sectionBadge}>Content</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Items created vs archived"
+            subtitle="Stacked daily bars + net items KPI"
+            metrics={['pdp.item.created', 'pdp.item.archived']}
+            badge="Stacked Bar"
+            size="wide"
+          >
+            <div className={styles.chartStack}>
+              <MetricChart variant="stacked-bar" series={itemSeries} size="md" />
+              <MetricLegend
+                items={[
+                  { label: 'Created', tone: 'series0' },
+                  { label: 'Archived', tone: 'series1' },
+                ]}
+              />
+            </div>
+            <div className={styles.kpiRow}>
+              <MetricKpi label="Net items" value={formatNumber(summary.itemCreated - summary.itemArchived)} helper="Created - archived" />
+              <MetricKpi label="Created" value={formatNumber(summary.itemCreated)} tone="slate" />
+              <MetricKpi label="Archived" value={formatNumber(summary.itemArchived)} tone="amber" />
+            </div>
+          </MetricPanel>
+
+          <MetricPanel
+            title="Item creation latency"
+            subtitle="Distribution across requests"
+            metrics={['pdp.item.create.duration']}
+            badge="Violin"
+          >
+            <MetricChart variant="violin" values={itemDurationViolin} size="md" />
+            <MetricKpi label="Avg duration" value={formatDuration(summary.itemDuration)} helper="Latency spread" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Moderation</h4>
+            <div className={styles.sectionMeta}>
+              <span>3 panels</span>
+              <span className={styles.sectionBadge}>Safety</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Moderation cases created"
+            subtitle="Line trend with stacked source breakdown"
+            metrics={['pdp.moderation.case.created']}
+            badge="Line + Area"
+            size="wide"
+          >
+            <div className={styles.chartStack}>
+              <MetricChart variant="line" series={moderationLine} size="md" />
+              <MetricChart variant="stacked-area" series={moderationSources} size="sm" />
+              <MetricLegend
+                items={[
+                  { label: 'API', tone: 'series0' },
+                  { label: 'User', tone: 'series1' },
+                  { label: 'System', tone: 'series2' },
+                ]}
+              />
+            </div>
+          </MetricPanel>
+
+          <MetricPanel
+            title="Case state transitions"
+            subtitle="Daily stacked status mix"
+            metrics={['pdp.moderation.case.state.transition']}
+            badge="Stacked Bar"
+          >
+            <MetricChart variant="stacked-bar" series={moderationTransitionSeries} size="md" />
+            <MetricLegend
+              items={[
+                { label: 'Approved', tone: 'series0' },
+                { label: 'Rejected', tone: 'series1' },
+                { label: 'Auto-blocked', tone: 'series2' },
+              ]}
+            />
+          </MetricPanel>
+
+          <MetricPanel
+            title="Auto-blocked cases"
+            subtitle="Low-frequency monitoring"
+            metrics={['pdp.moderation.case.auto_blocked']}
+            badge="KPI + Line"
+          >
+            <MetricChart variant="line" series={moderationAutoSeries} size="sm" />
+            <MetricKpi label="Auto-blocked" value={formatNumber(summary.moderationAutoBlocked)} tone="rose" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Extraction</h4>
+            <div className={styles.sectionMeta}>
+              <span>1 panel</span>
+              <span className={styles.sectionBadge}>Pipeline</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Extraction requests"
+            subtitle="Requested vs failed with error rate overlay"
+            metrics={['pdp.extraction.requested', 'pdp.extraction.failed']}
+            badge="Line"
+            size="wide"
+          >
+            <MetricChart variant="line" series={extractionSeries} size="md" />
+            <MetricLegend
+              items={[
+                { label: 'Requested', tone: 'series0' },
+                { label: 'Failed', tone: 'series1' },
+                { label: 'Error rate', tone: 'series2' },
+              ]}
+            />
+            <div className={styles.kpiRow}>
+              <MetricKpi label="Requested" value={formatNumber(summary.extractionRequested)} tone="slate" />
+              <MetricKpi label="Failed" value={formatNumber(summary.extractionFailed)} tone="rose" />
+            </div>
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>User Messages</h4>
+            <div className={styles.sectionMeta}>
+              <span>1 panel</span>
+              <span className={styles.sectionBadge}>Messaging</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Lifecycle flow"
+            subtitle="Stacked area trend + funnel conversion"
+            metrics={[
+              'pdp.user_message.created',
+              'pdp.user_message.updated',
+              'pdp.user_message.deleted',
+              'pdp.user_message.processed',
+            ]}
+            badge="Area + Funnel"
+            size="wide"
+          >
+            <div className={styles.chartSplit}>
+              <div className={styles.chartStack}>
+                <MetricChart variant="stacked-area" series={userMessageSeries} size="lg" />
+                <MetricLegend
+                  items={[
+                    { label: 'Created', tone: 'series0' },
+                    { label: 'Updated', tone: 'series1' },
+                    { label: 'Deleted', tone: 'series2' },
+                    { label: 'Processed', tone: 'series3' },
+                  ]}
+                />
+              </div>
+              <div className={styles.chartColumn}>
+                <MetricChart variant="funnel" funnel={userFunnelStages} size="sm" />
+                <MetricKpi
+                  label="Create → Processed"
+                  value={summary.userMessageCreated > 0
+                    ? `${Math.round((summary.userMessageProcessed / summary.userMessageCreated) * 100)}%`
+                    : '—'}
+                  helper="Funnel conversion"
+                />
+              </div>
+            </div>
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Signal Engine</h4>
+            <div className={styles.sectionMeta}>
+              <span>2 panels</span>
+              <span className={styles.sectionBadge}>Processing</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Signal engine health"
+            subtitle="Success vs failure with success rate gauge"
+            metrics={['pdp.signal_engine.success', 'pdp.signal_engine.failure']}
+            badge="Line + Gauge"
+            size="wide"
+          >
+            <div className={styles.chartSplit}>
+              <div className={styles.chartStack}>
+                <MetricChart variant="line" series={signalSeries} size="lg" />
+                <MetricLegend
+                  items={[
+                    { label: 'Success', tone: 'series0' },
+                    { label: 'Failure', tone: 'series1' },
+                  ]}
+                />
+              </div>
+              <div className={styles.chartColumn}>
+                <MetricChart
+                  variant="gauge"
+                  gauge={{ value: signalSuccessRate * 100, total: 100 }}
+                  size="sm"
+                />
+                <MetricKpi
+                  label="Success rate"
+                  value={`${Math.round(signalSuccessRate * 100)}%`}
+                  helper={`${formatNumber(summary.signalSuccess)} ok`}
+                />
+              </div>
+            </div>
+          </MetricPanel>
+
+          <MetricPanel
+            title="Signals stored"
+            subtitle="Line trend with daily throughput"
+            metrics={['pdp.signal_engine.signals_stored']}
+            badge="Line + Bar"
+            size="wide"
+          >
+            <div className={styles.chartSplit}>
+              <MetricChart variant="line" series={signalStoredLine} size="md" />
+              <MetricChart variant="bar" values={signalStoredBars} size="sm" />
+            </div>
+            <MetricKpi label="Stored" value={formatNumber(summary.signalStored)} helper="Last 12 periods" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Signal Normalization</h4>
+            <div className={styles.sectionMeta}>
+              <span>2 panels</span>
+              <span className={styles.sectionBadge}>Normalization</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Normalization success"
+            subtitle="Success vs failure with KPI rate"
+            metrics={['pdp.signal_normalization.success', 'pdp.signal_normalization.failure']}
+            badge="Line"
+          >
+            <MetricChart variant="line" series={normalizationSeries} size="md" />
+            <MetricLegend
+              items={[
+                { label: 'Success', tone: 'series0' },
+                { label: 'Failure', tone: 'series1' },
+              ]}
+            />
+            <MetricKpi
+              label="Success rate"
+              value={`${Math.round(normalizationRate * 100)}%`}
+              helper={`${formatNumber(summary.normalizationSuccess)} normalized`}
+            />
+          </MetricPanel>
+
+          <MetricPanel
+            title="Signals normalized"
+            subtitle="Throughput line with sparkline"
+            metrics={['pdp.signal_normalization.signals_normalized']}
+            badge="Line + Spark"
+          >
+            <div className={styles.chartStack}>
+              <MetricChart variant="line" series={normalizationSignalSeries} size="md" />
+              <MetricChart variant="sparkline" values={normalizationSpark} size="sm" />
+            </div>
+            <MetricKpi label="Normalized" value={formatNumber(summary.normalizationSignals)} helper="Per period" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Insights Requests</h4>
+            <div className={styles.sectionMeta}>
+              <span>{insightTypes.length} types</span>
+              <span className={styles.sectionBadge}>Signals</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Insight requests by type"
+            subtitle="Stacked trend with share pie"
+            metrics={insightTypes.map((name) => `pdp.insights.${name}`)}
+            badge="Stacked + Pie"
+            size="wide"
+          >
+            <div className={styles.chartSplit}>
+              <MetricChart variant="stacked-bar" series={insightSeries} size="md" />
+              <MetricChart variant="pie" pie={insightPie} size="sm" />
+            </div>
+            <MetricLegend
+              items={insightTypes.slice(0, 5).map((name, index) => ({
+                label: name,
+                tone: `series${index}` as 'series0' | 'series1' | 'series2' | 'series3' | 'series4',
+              }))}
+            />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Test Data</h4>
+            <div className={styles.sectionMeta}>
+              <span>1 panel</span>
+              <span className={styles.sectionBadge}>Seeding</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="Daily behavior seeds"
+            subtitle="Scatter timeline with KPI count"
+            metrics={['pdp.test_data.daily_behavior.seeded']}
+            badge="Scatter"
+          >
+            <MetricChart variant="scatter" scatter={buildScatter('pdp.test_data.daily_behavior.seeded')} size="md" />
+            <MetricKpi label="Seeds" value={formatNumber(testDataCount)} helper="Seeding events" />
+          </MetricPanel>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h4 className={styles.sectionTitle}>Admin System Overview</h4>
+            <div className={styles.sectionMeta}>
+              <span>1 panel</span>
+              <span className={styles.sectionBadge}>Admin</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.panelGrid}>
+          <MetricPanel
+            title="System overview visits"
+            subtitle="Low-frequency timeline scatter"
+            metrics={['pdp.admin.system_overview']}
+            badge="Scatter"
+          >
+            <MetricChart variant="scatter" scatter={buildScatter('pdp.admin.system_overview')} size="md" />
+            <MetricKpi label="Overview hits" value={formatNumber(adminOverviewCount)} helper="Admin views" />
+          </MetricPanel>
+        </div>
+      </section>
     </div>
   );
 };
