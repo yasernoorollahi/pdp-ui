@@ -7,9 +7,6 @@ interface SystemStats {
     totalUsers: number;
     activeUsers: number;
     lockedUsers: number;
-    totalItems: number;
-    activeItems: number;
-    archivedItems: number;
     totalRefreshTokens: number;
     activeRefreshTokens: number;
     pendingNotifications: number;
@@ -34,7 +31,6 @@ interface OverviewData {
             maxConnections: number;
             minConnections: number;
         };
-        itemCreatedCount: number;
     };
     generatedAt: string;
 }
@@ -156,49 +152,6 @@ const StatsTab = ({ stats }: { stats: SystemStats }) => {
                         </div>
                         <div className={styles.miniBarTrack}>
                             <div className={styles.miniBarFillRed} style={{ width: `${stats.totalUsers > 0 ? (stats.lockedUsers / stats.totalUsers) * 100 : 0}%` }} />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Items */}
-            <div className={styles.glassCard}>
-                <div className={styles.cardHeader}>
-                    <div className={`${styles.cardIconWrapper} ${styles.purpleIcon}`}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                    </div>
-                    <h3 className={styles.cardTitle}>Content Items</h3>
-                </div>
-                <div className={styles.miniBarGroup}>
-                    <div className={styles.miniBarItem}>
-                        <div className={styles.miniBarHeader}>
-                            <span className={styles.statLabel}>Total</span>
-                            <span className={styles.statValue}>{stats.totalItems}</span>
-                        </div>
-                        <div className={styles.miniBarTrack}>
-                            <div className={styles.miniBarFillPurple} style={{ width: '100%' }} />
-                        </div>
-                    </div>
-                    <div className={styles.miniBarItem}>
-                        <div className={styles.miniBarHeader}>
-                            <span className={styles.statLabel}>Active</span>
-                            <span className={`${styles.statValue} ${styles.statValueHighlight}`}>{stats.activeItems}</span>
-                        </div>
-                        <div className={styles.miniBarTrack}>
-                            <div className={styles.miniBarFillGreen} style={{ width: `${stats.totalItems > 0 ? (stats.activeItems / stats.totalItems) * 100 : 0}%` }} />
-                        </div>
-                    </div>
-                    <div className={styles.miniBarItem}>
-                        <div className={styles.miniBarHeader}>
-                            <span className={styles.statLabel}>Archived</span>
-                            <span className={styles.statValue}>{stats.archivedItems}</span>
-                        </div>
-                        <div className={styles.miniBarTrack}>
-                            <div className={styles.miniBarFillOrange} style={{ width: `${stats.totalItems > 0 ? (stats.archivedItems / stats.totalItems) * 100 : 0}%` }} />
                         </div>
                     </div>
                 </div>
@@ -446,15 +399,6 @@ const OverviewTab = ({ data }: { data: OverviewData }) => {
                         <div>
                             <p className={styles.metricTileValue}>{(metrics.jvmThreadsLive ?? 0).toFixed(0)}</p>
                             <p className={styles.metricTileLabel}>Live Threads</p>
-                        </div>
-                    </div>
-                    <div className={styles.metricInlineTile}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" width="20" height="20">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
-                        <div>
-                            <p className={styles.metricTileValue}>{metrics.itemCreatedCount.toFixed(0)}</p>
-                            <p className={styles.metricTileLabel}>Items Created</p>
                         </div>
                     </div>
                 </div>

@@ -4,9 +4,6 @@ export interface SystemStats {
   totalUsers: number;
   activeUsers: number;
   lockedUsers: number;
-  totalItems: number;
-  activeItems: number;
-  archivedItems: number;
   totalRefreshTokens: number;
   activeRefreshTokens: number;
   pendingNotifications: number;
@@ -38,7 +35,6 @@ export interface OverviewData {
       maxConnections: number;
       minConnections: number;
     };
-    itemCreatedCount: number;
   };
   generatedAt: string;
 }

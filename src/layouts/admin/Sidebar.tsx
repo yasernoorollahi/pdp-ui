@@ -77,48 +77,6 @@ const navItems: NavSection[] = [
                 ],
             },
             {
-                label: 'Moderation',
-                path: '/admin/moderation',
-                badge: null,
-                badgeVariant: null,
-                icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18">
-                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
-                    </svg>
-                ),
-                children: [
-                    {
-                        label: 'Review Queue',
-                        path: '/admin/moderation/queue',
-                        badge: null,
-                        badgeVariant: null,
-                        icon: (
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
-                                <line x1="8" y1="6" x2="21" y2="6" />
-                                <line x1="8" y1="12" x2="21" y2="12" />
-                                <line x1="8" y1="18" x2="21" y2="18" />
-                                <line x1="3" y1="6" x2="3.01" y2="6" />
-                                <line x1="3" y1="12" x2="3.01" y2="12" />
-                                <line x1="3" y1="18" x2="3.01" y2="18" />
-                            </svg>
-                        ),
-                    },
-                    {
-                        label: 'New Case',
-                        path: '/admin/moderation/new',
-                        badge: null,
-                        badgeVariant: null,
-                        icon: (
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="16" />
-                                <line x1="8" y1="12" x2="16" y2="12" />
-                            </svg>
-                        ),
-                    },
-                ],
-            },
-            {
                 label: 'Security & Threats',
                 path: '/admin/security',
                 badge: '3',
