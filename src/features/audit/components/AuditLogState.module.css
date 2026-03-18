@@ -1,0 +1,33 @@
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  color: #cbd5f5;
+}
+
+.icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #f8fafc;
+}
+
+.message {
+  margin: 0;
+  color: #94a3b8;
+  max-width: 420px;
+  font-size: 0.9rem;
+}

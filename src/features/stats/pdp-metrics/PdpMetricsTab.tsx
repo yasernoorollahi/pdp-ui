@@ -48,14 +48,6 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
     const tokenRefresh = getMetricCount(metrics, 'pdp.auth.token.refresh');
     const rateLimit = getMetricCount(metrics, 'pdp.rate_limit.hit');
 
-    const itemCreated = getMetricCount(metrics, 'pdp.item.created');
-    const itemArchived = getMetricCount(metrics, 'pdp.item.archived');
-    const itemDuration = getMetricAvgDuration(metrics, 'pdp.item.create.duration');
-
-    const moderationCreated = getMetricCount(metrics, 'pdp.moderation.case.created');
-    const moderationTransitions = getMetricCount(metrics, 'pdp.moderation.case.state.transition');
-    const moderationAutoBlocked = getMetricCount(metrics, 'pdp.moderation.case.auto_blocked');
-
     const extractionRequested = getMetricCount(metrics, 'pdp.extraction.requested');
     const extractionFailed = getMetricCount(metrics, 'pdp.extraction.failed');
 
@@ -76,12 +68,6 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
       loginDuration,
       tokenRefresh,
       rateLimit,
-      itemCreated,
-      itemArchived,
-      itemDuration,
-      moderationCreated,
-      moderationTransitions,
-      moderationAutoBlocked,
       extractionRequested,
       extractionFailed,
       userMessageCreated,
@@ -177,27 +163,6 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
   const rateLimitMax = Math.max(...rateLimitSeries[0].values, 1);
   const rateLimitThreshold = rateLimitMax * 0.75;
 
-  const itemSeries = buildSeriesSet(
-    ['Created', 'Archived'],
-    [summary.itemCreated, summary.itemArchived],
-  );
-
-  const itemDurationViolin = buildViolin('pdp.item.create.duration', summary.itemDuration || 0.6, 14);
-
-  const moderationTotal = summary.moderationCreated || summary.moderationTransitions || 1;
-  const moderationSources = buildSeriesSet(
-    ['API', 'User', 'System'],
-    [moderationTotal * 0.5, moderationTotal * 0.3, moderationTotal * 0.2],
-  );
-  const moderationLine = buildLineSeries('Cases', summary.moderationCreated || moderationTotal);
-
-  const moderationTransitionSeries = buildSeriesSet(
-    ['Approved', 'Rejected', 'Auto-blocked'],
-    [moderationTotal * 0.45, moderationTotal * 0.3, moderationTotal * 0.25],
-  );
-
-  const moderationAutoSeries = buildLineSeries('Auto blocked', summary.moderationAutoBlocked);
-
   const extractionSeries = buildSeriesSet(
     ['Requested', 'Failed', 'Error rate'],
     [summary.extractionRequested, summary.extractionFailed, summary.extractionFailed * 1.2],
@@ -284,14 +249,6 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
           <div className={styles.summaryStat}>
             <p className={styles.summaryValue}>{formatNumber(summary.signalStored)}</p>
             <p className={styles.summaryLabel}>Signals Stored</p>
-          </div>
-          <div className={styles.summaryStat}>
-            <p className={styles.summaryValue}>{formatNumber(summary.itemCreated - summary.itemArchived)}</p>
-            <p className={styles.summaryLabel}>Net Items</p>
-          </div>
-          <div className={styles.summaryStat}>
-            <p className={styles.summaryValue}>{formatNumber(summary.moderationAutoBlocked)}</p>
-            <p className={styles.summaryLabel}>Auto Blocks</p>
           </div>
         </div>
       </div>
@@ -387,111 +344,6 @@ export const PdpMetricsTab = ({ metrics, loading, error, updatedAt, onRetry }: P
           >
             <MetricChart variant="line-threshold" series={rateLimitSeries} threshold={rateLimitThreshold} size="md" />
             <MetricKpi label="Total hits" value={formatNumber(summary.rateLimit)} helper="Threshold alerts" tone="rose" />
-          </MetricPanel>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h4 className={styles.sectionTitle}>Items</h4>
-            <div className={styles.sectionMeta}>
-              <span>2 panels</span>
-              <span className={styles.sectionBadge}>Content</span>
-            </div>
-          </div>
-        </div>
-        <div className={styles.panelGrid}>
-          <MetricPanel
-            title="Items created vs archived"
-            subtitle="Stacked daily bars + net items KPI"
-            metrics={['pdp.item.created', 'pdp.item.archived']}
-            badge="Stacked Bar"
-            size="wide"
-          >
-            <div className={styles.chartStack}>
-              <MetricChart variant="stacked-bar" series={itemSeries} size="md" />
-              <MetricLegend
-                items={[
-                  { label: 'Created', tone: 'series0' },
-                  { label: 'Archived', tone: 'series1' },
-                ]}
-              />
-            </div>
-            <div className={styles.kpiRow}>
-              <MetricKpi label="Net items" value={formatNumber(summary.itemCreated - summary.itemArchived)} helper="Created - archived" />
-              <MetricKpi label="Created" value={formatNumber(summary.itemCreated)} tone="slate" />
-              <MetricKpi label="Archived" value={formatNumber(summary.itemArchived)} tone="amber" />
-            </div>
-          </MetricPanel>
-
-          <MetricPanel
-            title="Item creation latency"
-            subtitle="Distribution across requests"
-            metrics={['pdp.item.create.duration']}
-            badge="Violin"
-          >
-            <MetricChart variant="violin" values={itemDurationViolin} size="md" />
-            <MetricKpi label="Avg duration" value={formatDuration(summary.itemDuration)} helper="Latency spread" />
-          </MetricPanel>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h4 className={styles.sectionTitle}>Moderation</h4>
-            <div className={styles.sectionMeta}>
-              <span>3 panels</span>
-              <span className={styles.sectionBadge}>Safety</span>
-            </div>
-          </div>
-        </div>
-        <div className={styles.panelGrid}>
-          <MetricPanel
-            title="Moderation cases created"
-            subtitle="Line trend with stacked source breakdown"
-            metrics={['pdp.moderation.case.created']}
-            badge="Line + Area"
-            size="wide"
-          >
-            <div className={styles.chartStack}>
-              <MetricChart variant="line" series={moderationLine} size="md" />
-              <MetricChart variant="stacked-area" series={moderationSources} size="sm" />
-              <MetricLegend
-                items={[
-                  { label: 'API', tone: 'series0' },
-                  { label: 'User', tone: 'series1' },
-                  { label: 'System', tone: 'series2' },
-                ]}
-              />
-            </div>
-          </MetricPanel>
-
-          <MetricPanel
-            title="Case state transitions"
-            subtitle="Daily stacked status mix"
-            metrics={['pdp.moderation.case.state.transition']}
-            badge="Stacked Bar"
-          >
-            <MetricChart variant="stacked-bar" series={moderationTransitionSeries} size="md" />
-            <MetricLegend
-              items={[
-                { label: 'Approved', tone: 'series0' },
-                { label: 'Rejected', tone: 'series1' },
-                { label: 'Auto-blocked', tone: 'series2' },
-              ]}
-            />
-          </MetricPanel>
-
-          <MetricPanel
-            title="Auto-blocked cases"
-            subtitle="Low-frequency monitoring"
-            metrics={['pdp.moderation.case.auto_blocked']}
-            badge="KPI + Line"
-          >
-            <MetricChart variant="line" series={moderationAutoSeries} size="sm" />
-            <MetricKpi label="Auto-blocked" value={formatNumber(summary.moderationAutoBlocked)} tone="rose" />
           </MetricPanel>
         </div>
       </section>

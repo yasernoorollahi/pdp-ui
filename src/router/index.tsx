@@ -8,10 +8,7 @@ import { UserDashboard } from '../features/user/pages/UserDashboard';
 import { AdminDashboard } from '../features/dashboard/AdminDashboard';
 import { LockedUsersPage } from '../features/admin/pages/LockedUsersPage';
 import { AdminStatsPage } from '../features/stats/AdminStatsPage';
-import { ModerationDashboard } from '../features/moderation/pages/ModerationDashboard';
-import { ReviewQueue }         from '../features/moderation/pages/ReviewQueue';
-import { CreateCasePage } from '../features/moderation/pages/CreateCasePage';
-
+import { AdminAuditLogsPage } from '../features/audit/pages/AdminAuditLogsPage';
 import { RoleGuard } from '../shared/components/guards/RoleGuard';
 
 export default function AppRouter() {
@@ -38,11 +35,8 @@ export default function AppRouter() {
             <Route path="/admin"                    element={<AdminDashboard />} />
             <Route path="/admin/stats"              element={<AdminStatsPage />} />
             <Route path="/admin/users/locked"       element={<LockedUsersPage />} />
+            <Route path="/admin/audit"              element={<AdminAuditLogsPage />} />
 
-            {/* ── Moderation Center ─────────────────────────────────── */}
-            <Route path="/admin/moderation"         element={<ModerationDashboard />} />
-            <Route path="/admin/moderation/queue"   element={<ReviewQueue />} />
-            <Route path="/admin/moderation/new"     element={<CreateCasePage />} />
           </Route>
         </Route>
       </Routes>
