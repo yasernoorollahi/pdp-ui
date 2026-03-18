@@ -1,0 +1,11 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.row {
+  height: 110px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.6);
+}
