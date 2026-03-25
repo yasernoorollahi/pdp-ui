@@ -41,15 +41,19 @@ export const JobOverrideAuditPanel = ({ items, loading, error }: JobOverrideAudi
     ) : items.length === 0 ? (
       <div className={styles.state}>No persisted override changes were returned by the audit endpoint yet.</div>
     ) : (
-      <div className={styles.list}>
+      <div className={styles.content}>
+        <div className={styles.latestBanner}>
+          <p className={styles.latestLabel}>Latest job update</p>
+          <p className={styles.latestJob}>{normalizeJobKey(items[0])}</p>
+        </div>
+
+        <div className={styles.list}>
         {items.map((item, index) => (
           <div className={styles.item} key={`${normalizeJobKey(item)}-${item.updatedAt}-${index}`}>
-            <div>
+            <div className={styles.itemMain}>
               <p className={styles.jobName}>{normalizeJobKey(item)}</p>
               <p className={styles.details}>
                 Updated at {formatDateTime(item.updatedAt)}
-                {' · '}
-                Updated by {item.updatedBy || 'unknown'}
               </p>
             </div>
             <div className={styles.status}>
@@ -60,6 +64,7 @@ export const JobOverrideAuditPanel = ({ items, loading, error }: JobOverrideAudi
             </div>
           </div>
         ))}
+        </div>
       </div>
     )}
   </GlassPanel>

@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { Badge, Button, GlassPanel, Skeleton, Switch } from '../../components/ui';
+import { Button, GlassPanel, Skeleton, Switch } from '../../components/ui';
 import { adminJobsService, type AdminJobsConfigResponse } from '../../services/adminJobs.service';
 import type { JobLog } from '../../services/system.service';
 import { JobControlList } from './components/JobControlList';
 import { JobControlSummary } from './components/JobControlSummary';
 import { JobExecutionHistory } from './components/JobExecutionHistory';
-import { JobOverrideAuditPanel } from './components/JobOverrideAuditPanel';
 import styles from './JobsControlTab.module.css';
 
 interface JobsControlTabProps {
@@ -30,15 +29,6 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const formatGeneratedAt = (value: string) =>
-  new Date(value).toLocaleString([], {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
 const resolveGlobalEnabled = (config: Pick<AdminJobsConfigResponse, 'globalEnabled'>) =>
   config.globalEnabled ?? false;
 
@@ -54,14 +44,9 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
   const [draftJobs, setDraftJobs] = useState<Record<string, boolean>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [loadedAt, setLoadedAt] = useState<string | null>(null);
-  const [auditItems, setAuditItems] = useState<Awaited<ReturnType<typeof adminJobsService.getJobOverrideAudit>>>([]);
-  const [auditLoading, setAuditLoading] = useState(true);
-  const [auditError, setAuditError] = useState<string | null>(null);
 
   const hydrateFromConfig = (nextConfig: AdminJobsConfigResponse) => {
     setConfig(nextConfig);
@@ -72,8 +57,6 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
   const loadConfig = async (withLoader = false) => {
     if (withLoader) {
       setLoading(true);
-    } else {
-      setRefreshing(true);
     }
 
     setError(null);
@@ -81,42 +64,17 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
     try {
       const response = await adminJobsService.getJobsConfig();
       hydrateFromConfig(response);
-      setLoadedAt(new Date().toISOString());
     } catch (requestError) {
       setError(getErrorMessage(requestError, 'Failed to load jobs configuration.'));
     } finally {
       if (withLoader) {
         setLoading(false);
-      } else {
-        setRefreshing(false);
-      }
-    }
-  };
-
-  const loadAudit = async (withLoader = false) => {
-    if (withLoader) {
-      setAuditLoading(true);
-    }
-
-    setAuditError(null);
-
-    try {
-      const response = await adminJobsService.getJobOverrideAudit();
-      setAuditItems(
-        [...response].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
-      );
-    } catch (requestError) {
-      setAuditError(getErrorMessage(requestError, 'Latest DB override changes endpoint is unavailable.'));
-    } finally {
-      if (withLoader) {
-        setAuditLoading(false);
       }
     }
   };
 
   useEffect(() => {
     void loadConfig(true);
-    void loadAudit(true);
   }, []);
 
   const isDirty = useMemo(() => {
@@ -170,16 +128,32 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
     };
   }, [config]);
 
-  const handleRefresh = async () => {
-    setFeedback(null);
-    await Promise.all([loadConfig(false), loadAudit(false)]);
+  const handleGlobalToggle = (enabled: boolean) => {
+    setDraftGlobalEnabled(enabled);
+
+    if (config) {
+      setDraftJobs(
+        Object.fromEntries(config.jobs.map((job) => [job.jobKey, enabled])),
+      );
+    }
   };
 
-  const handleResetAll = () => {
-    if (!config) return;
-    setFeedback(null);
-    setDraftGlobalEnabled(resolveGlobalEnabled(config));
-    setDraftJobs(buildDraftMap(config));
+  const handleJobToggle = (jobKey: string, enabled: boolean) => {
+    setDraftJobs((current) => {
+      const next = {
+        ...current,
+        [jobKey]: enabled,
+      };
+
+      if (!config) {
+        return next;
+      }
+
+      const anyEnabled = config.jobs.some((job) => next[job.jobKey] ?? resolveJobEnabled(job));
+      setDraftGlobalEnabled(anyEnabled);
+
+      return next;
+    });
   };
 
   const handleSave = async () => {
@@ -199,7 +173,6 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
       });
 
       hydrateFromConfig(response);
-      await loadAudit(false);
       setFeedback('Job controls updated successfully.');
     } catch (requestError) {
       setError(getErrorMessage(requestError, 'Failed to save jobs configuration.'));
@@ -253,26 +226,18 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
 
   return (
     <div className={styles.container}>
+      <JobControlSummary
+        blockedJobs={summary.blockedJobs}
+        enabledJobs={summary.enabledJobs}
+        overriddenJobs={summary.overriddenJobs}
+        totalJobs={summary.totalJobs}
+      />
+
       <GlassPanel className={styles.hero}>
         <div className={styles.heroTop}>
           <div>
             <p className={styles.eyebrow}>Job Management</p>
-            <h2 className={styles.title}>Control scheduler availability from one place</h2>
-            <p className={styles.description}>
-              Global shutdown and per-job overrides are staged locally first, then persisted together so admins can make safe coordinated changes.
-            </p>
-          </div>
-          <div className={styles.meta}>
-            <Badge variant={draftGlobalEnabled ? 'emerald' : 'red'}>
-              Global: {draftGlobalEnabled ? 'Enabled' : 'Disabled'}
-            </Badge>
-            <Badge variant={(config.globalOverride ?? false) ? 'gold' : 'muted'}>
-              Global override: {(config.globalOverride ?? false) ? 'Manual' : 'Default'}
-            </Badge>
-            <Badge variant={jobDiagnostics.invalidKeys.length === 0 ? 'emerald' : 'red'}>
-              Keys: {config.jobs.length}/{ALLOWED_JOB_KEYS.length}
-            </Badge>
-            <Badge variant="muted">Generated: {formatGeneratedAt(config.generatedAt)}</Badge>
+            <h2 className={styles.title}>Global and per-job controls</h2>
           </div>
         </div>
 
@@ -280,77 +245,43 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
           <div className={styles.globalCard}>
             <div className={styles.globalHeader}>
               <div>
-                <h3 className={styles.cardTitle}>Global execution switch</h3>
-                <p className={styles.cardText}>
-                  Turn every scheduler on or off instantly. Per-job overrides stay stored locally and on the server, but effective execution follows the global switch.
-                </p>
+                <h3 className={styles.cardTitle}>Global execution</h3>
+                <p className={styles.cardText}>Turn all schedulers on or off, then adjust individual jobs below.</p>
               </div>
               <Switch
                 aria-label="Toggle all jobs"
                 checked={draftGlobalEnabled}
-                label={draftGlobalEnabled ? 'All jobs enabled' : 'All jobs paused'}
-                onChange={setDraftGlobalEnabled}
+                label={draftGlobalEnabled ? 'Enabled' : 'Disabled'}
+                onChange={handleGlobalToggle}
               />
             </div>
 
-            <div className={styles.globalMeta}>
-              <div className={styles.metaCard}>
-                <p className={styles.metaLabel}>Draft state</p>
-                <p className={styles.metaValue}>{draftGlobalEnabled ? 'Schedulers can run' : 'Schedulers are suppressed'}</p>
-              </div>
-              <div className={styles.metaCard}>
-                <p className={styles.metaLabel}>Unsaved changes</p>
-                <p className={styles.metaValue}>{isDirty ? 'Pending review' : 'None'}</p>
-              </div>
-              <div className={styles.metaCard}>
-                <p className={styles.metaLabel}>Jobs loaded</p>
-                <p className={styles.metaValue}>{config.jobs.length} returned by GET /api/admin/jobs</p>
-              </div>
-              <div className={styles.metaCard}>
-                <p className={styles.metaLabel}>Last fetch</p>
-                <p className={styles.metaValue}>{loadedAt ? formatGeneratedAt(loadedAt) : 'Waiting for first successful load'}</p>
-              </div>
-            </div>
-          </div>
+            <JobControlList
+              draftValues={draftJobs}
+              embedded
+              globalEnabled={draftGlobalEnabled}
+              jobs={config.jobs}
+              onResetJob={(jobKey) =>
+                setDraftJobs((current) => {
+                  const next = { ...current };
+                  const job = config.jobs.find((entry) => entry.jobKey === jobKey);
 
-          <div className={styles.statusCard}>
-            <div className={styles.statusHeader}>
-              <div>
-                <h3 className={styles.cardTitle}>Control status</h3>
-                <p className={styles.cardText}>Quick read on what will happen if you save the current draft.</p>
-              </div>
-            </div>
+                  if (job) {
+                    next[jobKey] = resolveJobEnabled(job);
+                  }
 
-            <div className={styles.statusStack}>
-              <div className={styles.statusItem}>
-                <p className={styles.statusLabel}>Effective enabled jobs</p>
-                <p className={styles.statusValue}>{summary.enabledJobs} of {summary.totalJobs}</p>
-              </div>
-              <div className={styles.statusItem}>
-                <p className={styles.statusLabel}>Manual overrides</p>
-                <p className={styles.statusValue}>{summary.overriddenJobs} jobs differ from configured defaults</p>
-              </div>
-              <div className={styles.statusItem}>
-                <p className={styles.statusLabel}>Global suppression</p>
-                <p className={styles.statusValue}>{summary.blockedJobs} enabled jobs would stay paused if global is off</p>
-              </div>
-              <div className={styles.statusItem}>
-                <p className={styles.statusLabel}>Expected keys</p>
-                <p className={styles.statusValue}>
-                  {jobDiagnostics.missingKeys.length === 0
-                    ? 'All expected job keys are present'
-                    : `Missing: ${jobDiagnostics.missingKeys.join(', ')}`}
-                </p>
-              </div>
-            </div>
+                  return next;
+                })
+              }
+              onResetSearch={() => setSearchTerm('')}
+              onSearchChange={setSearchTerm}
+              onToggleJob={handleJobToggle}
+              searchTerm={searchTerm}
+            />
           </div>
         </div>
 
         <div className={styles.actions}>
-          <div className={styles.actionsLeft}>
-            <Button loading={refreshing} onClick={() => void handleRefresh()} variant="ghost">Refresh</Button>
-            <Button disabled={!isDirty || saving} onClick={handleResetAll} variant="ghost">Reset draft</Button>
-          </div>
           <div className={styles.actionsRight}>
             <Button disabled={!isDirty || !jobDiagnostics.canSave} loading={saving} onClick={handleSave} variant="teal">
               Save changes
@@ -371,46 +302,6 @@ export const JobsControlTab = ({ recentJobs }: JobsControlTabProps) => {
         )}
         {feedback && <div className={`${styles.banner} ${styles.bannerSuccess}`}>{feedback}</div>}
       </GlassPanel>
-
-      <JobControlSummary
-        blockedJobs={summary.blockedJobs}
-        enabledJobs={summary.enabledJobs}
-        overriddenJobs={summary.overriddenJobs}
-        totalJobs={summary.totalJobs}
-      />
-
-      <JobOverrideAuditPanel
-        error={auditError}
-        items={auditItems.slice(0, 6)}
-        loading={auditLoading}
-      />
-
-      <JobControlList
-        draftValues={draftJobs}
-        globalEnabled={draftGlobalEnabled}
-        jobs={config.jobs}
-        onResetJob={(jobKey) =>
-          setDraftJobs((current) => {
-            const next = { ...current };
-            const job = config.jobs.find((entry) => entry.jobKey === jobKey);
-
-            if (job) {
-              next[jobKey] = resolveJobEnabled(job);
-            }
-
-            return next;
-          })
-        }
-        onResetSearch={() => setSearchTerm('')}
-        onSearchChange={setSearchTerm}
-        onToggleJob={(jobKey, enabled) =>
-          setDraftJobs((current) => ({
-            ...current,
-            [jobKey]: enabled,
-          }))
-        }
-        searchTerm={searchTerm}
-      />
 
       <JobExecutionHistory jobs={recentJobs} />
     </div>
