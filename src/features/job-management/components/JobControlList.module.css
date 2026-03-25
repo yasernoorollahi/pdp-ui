@@ -1,0 +1,133 @@
+.panel {
+  gap: 1.25rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.toolbarCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.sectionText {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.84rem;
+}
+
+.search {
+  width: min(320px, 100%);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.rowMuted {
+  border-color: rgba(248, 113, 113, 0.12);
+}
+
+.jobIdentity {
+  min-width: 0;
+}
+
+.jobName {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.jobDescription {
+  margin: 0.35rem 0 0;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.resetBtn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.resetBtn:hover:not(:disabled) {
+  color: #e2e8f0;
+}
+
+.resetBtn:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #64748b;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+@media (max-width: 900px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .control,
+  .actions {
+    justify-content: space-between;
+  }
+}

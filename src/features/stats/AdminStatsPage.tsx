@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { systemService } from '../../services/system.service';
 import type { PdpMetric } from '../../services/pdpMetrics.service';
 import { pdpMetricsDashboardService } from '../../services/pdpMetricsDashboard.service';
-import { usePolling } from '../../hooks/usePolling';
-import type { SystemOverview, JobLog, SystemStats, OverviewData } from '../../services/system.service';
+import type { SystemOverview, SystemStats, OverviewData } from '../../services/system.service';
+import { JobsControlTab } from '../job-management/JobsControlTab';
 import { PdpMetricsTab } from './pdp-metrics/PdpMetricsTab';
 import styles from './AdminStatsPage.module.css';
 
@@ -424,302 +424,13 @@ const OverviewTab = ({ data }: { data: OverviewData }) => {
     );
 };
 
-// ─── Jobs Tab ─────────────────────────────────────────────────────────────────
-
-const formatJobName = (name: string) =>
-    name.replace(/Job$/, '').replace(/([A-Z])/g, ' $1').trim();
-
-const formatDateTime = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-};
-
-const formatDateShort = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
-const JobStatusBadge = ({ status }: { status: string }) => {
-    const cfg: Record<string, { bg: string; color: string; border: string; dot: string }> = {
-        SUCCESS: { bg: 'rgba(74,222,128,0.1)', color: '#4ade80', border: 'rgba(74,222,128,0.2)', dot: '#4ade80' },
-        FAILED:  { bg: 'rgba(248,113,113,0.1)', color: '#f87171', border: 'rgba(248,113,113,0.2)', dot: '#f87171' },
-        RUNNING: { bg: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: 'rgba(251,191,36,0.2)', dot: '#fbbf24' },
-    };
-    const s = cfg[status] ?? cfg.RUNNING;
-    return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-            padding: '0.2rem 0.7rem', borderRadius: 999, fontSize: '0.78rem',
-            fontWeight: 600, background: s.bg, color: s.color,
-            border: `1px solid ${s.border}`, letterSpacing: '0.04em',
-        }}>
-            <span style={{
-                width: 6, height: 6, borderRadius: '50%', background: s.dot,
-                boxShadow: status === 'RUNNING' ? `0 0 6px ${s.dot}` : undefined,
-                animation: status === 'RUNNING' ? 'glow 1.5s infinite' : undefined,
-            }} />
-            {status}
-        </span>
-    );
-};
-
-// ─── Job Accordion Row ────────────────────────────────────────────────────────
-
-const JobAccordionRow = ({ name, logs, prevLatestId }: {
-    name: string;
-    logs: JobLog[];
-    prevLatestId: string | null;
-}) => {
-    const [open, setOpen] = useState(false);
-    const latestRun = logs[0];
-    const isNewRun = prevLatestId !== null && latestRun.id !== prevLatestId;
-    const successCount = logs.filter(j => j.status === 'SUCCESS').length;
-    const failedCount  = logs.filter(j => j.status === 'FAILED').length;
-    const successRate  = Math.round((successCount / logs.length) * 100);
-    const avgDuration  = (logs.reduce((a, j) => a + j.duration, 0) / logs.length).toFixed(0);
-    const hasFailed    = latestRun.status === 'FAILED';
-
-    const accentColor = hasFailed ? '#f87171' : '#4ade80';
-    const accentBorder= hasFailed ? 'rgba(248,113,113,0.2)' : 'rgba(74,222,128,0.15)';
-
-    return (
-        <div
-            className={`${styles.accordionCard} ${isNewRun ? styles.accordionFlash : ''}`}
-            style={{ borderColor: open ? accentBorder : undefined }}
-        >
-            {/* Header — always visible */}
-            <button className={styles.accordionHeader} onClick={() => setOpen(o => !o)}>
-                {/* Left: status pulse + name */}
-                <div className={styles.accordionLeft}>
-                    <div className={styles.jobPulseWrapper}>
-                        <span className={styles.jobPulseDot} style={{ background: accentColor, boxShadow: `0 0 8px ${accentColor}` }} />
-                        {isNewRun && <span className={styles.jobPulseRing} style={{ borderColor: accentColor }} />}
-                    </div>
-                    <div>
-                        <p className={styles.accordionName}>{formatJobName(name)}</p>
-                        <p className={styles.accordionRaw}>{name}</p>
-                    </div>
-                </div>
-
-                {/* Center: mini sparkline of last 8 runs */}
-                <div className={styles.sparklineWrapper}>
-                    {logs.slice(0, 8).reverse().map((job, i) => (
-                        <div
-                            key={job.id}
-                            className={styles.sparkBar}
-                            style={{
-                                height: `${Math.max(20, Math.min(100, (job.duration / Math.max(...logs.map(j => j.duration), 1)) * 100))}%`,
-                                background: job.status === 'SUCCESS' ? '#4ade80' : '#f87171',
-                                animationDelay: `${i * 0.05}s`,
-                                opacity: i === logs.slice(0, 8).length - 1 ? 1 : 0.4 + i * 0.08,
-                            }}
-                        />
-                    ))}
-                </div>
-
-                {/* Right: stats + badge + chevron */}
-                <div className={styles.accordionRight}>
-                    <div className={styles.accordionMeta}>
-                        <span className={styles.accordionMetaItem}>
-                            <span style={{ color: '#64748b', fontSize: '0.75rem' }}>runs</span>
-                            <span className={styles.accordionMetaVal}>{logs.length}</span>
-                        </span>
-                        <span className={styles.accordionMetaItem}>
-                            <span style={{ color: '#64748b', fontSize: '0.75rem' }}>avg</span>
-                            <span className={styles.accordionMetaVal}>{avgDuration}ms</span>
-                        </span>
-                        <span className={styles.accordionMetaItem}>
-                            <span style={{ color: '#64748b', fontSize: '0.75rem' }}>last</span>
-                            <span className={styles.accordionMetaVal}>{formatDateTime(latestRun.startedAt)}</span>
-                        </span>
-                    </div>
-                    <JobStatusBadge status={latestRun.status} />
-                    <svg
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                        width="16" height="16"
-                        style={{ color: '#475569', transition: 'transform 0.3s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}
-                    >
-                        <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                </div>
-            </button>
-
-            {/* Success rate bar under header */}
-            <div className={styles.accordionProgressBar}>
-                <div
-                    className={successRate === 100 ? styles.miniBarFillGreen : styles.miniBarFillRed}
-                    style={{ width: `${successRate}%`, height: '3px', borderRadius: 0, transition: 'width 1s ease' }}
-                />
-            </div>
-
-            {/* Expandable detail table */}
-            {open && (
-                <div className={styles.accordionBody}>
-                    {/* Stats row */}
-                    <div className={styles.accordionStats}>
-                        <div className={styles.accordionStatTile} style={{ borderColor: 'rgba(74,222,128,0.15)' }}>
-                            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#4ade80' }}>{successCount}</span>
-                            <span className={styles.accordionStatLabel}>Success</span>
-                        </div>
-                        <div className={styles.accordionStatTile} style={{ borderColor: failedCount > 0 ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)' }}>
-                            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: failedCount > 0 ? '#f87171' : '#64748b' }}>{failedCount}</span>
-                            <span className={styles.accordionStatLabel}>Failed</span>
-                        </div>
-                        <div className={styles.accordionStatTile}>
-                            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24' }}>{avgDuration}<span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>ms</span></span>
-                            <span className={styles.accordionStatLabel}>Avg Duration</span>
-                        </div>
-                        <div className={styles.accordionStatTile}>
-                            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: successRate === 100 ? '#4ade80' : '#f87171' }}>{successRate}%</span>
-                            <span className={styles.accordionStatLabel}>Success Rate</span>
-                        </div>
-                    </div>
-
-                    {/* Runs list */}
-                    <div className={styles.accordionRunList}>
-                        {logs.map((job, i) => (
-                            <div key={job.id} className={`${styles.accordionRunRow} ${i === 0 ? styles.accordionRunRowLatest : ''}`}
-                                style={{ animationDelay: `${i * 0.04}s` }}>
-                                <div className={styles.accordionRunIndex}>
-                                    {i === 0 && <span className={styles.latestTag}>latest</span>}
-                                    {i > 0 && <span style={{ color: '#334155', fontSize: '0.75rem' }}>#{i + 1}</span>}
-                                </div>
-                                <div className={styles.accordionRunTime}>
-                                    <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>{formatDateShort(job.startedAt)}</span>
-                                    <span style={{ color: '#64748b', fontSize: '0.78rem' }}>{formatDateTime(job.startedAt)} → {formatDateTime(job.finishedAt)}</span>
-                                </div>
-                                <span className={styles.durationPill}>{job.duration}ms</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    {job.processedCount > 0 && (
-                                        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{job.processedCount} processed</span>
-                                    )}
-                                    <JobStatusBadge status={job.status} />
-                                </div>
-                                {job.errorMessage && (
-                                    <div className={styles.accordionError}>{job.errorMessage}</div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// ─── Jobs Tab ─────────────────────────────────────────────────────────────────
-
-const JobsTab = ({ jobs, prevJobs }: { jobs: JobLog[]; prevJobs: JobLog[] | null }) => {
-    if (!jobs || jobs.length === 0) return (
-        <div className={styles.glassCard}>
-            <div className={styles.emptyJobs}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="40" height="40" style={{ color: '#334155' }}>
-                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                </svg>
-                <p>No job executions recorded yet</p>
-            </div>
-        </div>
-    );
-
-    const successCount = jobs.filter(j => j.status === 'SUCCESS').length;
-    const failedCount  = jobs.filter(j => j.status === 'FAILED').length;
-    const avgDuration  = (jobs.reduce((a, j) => a + j.duration, 0) / jobs.length).toFixed(1);
-
-    // Group by jobName, sorted by most recent first
-    const byName: Record<string, JobLog[]> = {};
-    jobs.forEach(j => { (byName[j.jobName] = byName[j.jobName] || []).push(j); });
-
-    // Build prevLatestId map from previous fetch
-    const prevLatestMap: Record<string, string | null> = {};
-    if (prevJobs) {
-        const prevByName: Record<string, JobLog[]> = {};
-        prevJobs.forEach(j => { (prevByName[j.jobName] = prevByName[j.jobName] || []).push(j); });
-        Object.entries(prevByName).forEach(([name, logs]) => { prevLatestMap[name] = logs[0]?.id ?? null; });
-    }
-
-    return (
-        <div className={styles.jobsContainer}>
-            {/* Summary strip */}
-            <div className={styles.jobsSummaryRow}>
-                <div className={`${styles.glassCard} ${styles.jobSummaryCard}`}>
-                    <div className={styles.jobSummaryIcon} style={{ background: 'rgba(96,165,250,0.12)', color: '#60a5fa' }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                            <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p className={styles.jobSummaryValue}>{jobs.length}</p>
-                        <p className={styles.jobSummaryLabel}>Total Executions</p>
-                    </div>
-                </div>
-                <div className={`${styles.glassCard} ${styles.jobSummaryCard}`}>
-                    <div className={styles.jobSummaryIcon} style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80' }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                    <div>
-                        <p className={styles.jobSummaryValue} style={{ color: '#4ade80' }}>{successCount}</p>
-                        <p className={styles.jobSummaryLabel}>Succeeded</p>
-                    </div>
-                </div>
-                <div className={`${styles.glassCard} ${styles.jobSummaryCard}`}>
-                    <div className={styles.jobSummaryIcon} style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171' }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p className={styles.jobSummaryValue} style={{ color: failedCount > 0 ? '#f87171' : '#f1f5f9' }}>{failedCount}</p>
-                        <p className={styles.jobSummaryLabel}>Failed</p>
-                    </div>
-                </div>
-                <div className={`${styles.glassCard} ${styles.jobSummaryCard}`}>
-                    <div className={styles.jobSummaryIcon} style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p className={styles.jobSummaryValue}>{avgDuration}<span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 400 }}>ms</span></p>
-                        <p className={styles.jobSummaryLabel}>Avg Duration</p>
-                    </div>
-                </div>
-                <div className={`${styles.glassCard} ${styles.jobSummaryCard}`}>
-                    <div className={styles.jobSummaryIcon} style={{ background: 'rgba(168,85,247,0.12)', color: '#c084fc' }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p className={styles.jobSummaryValue}>{Object.keys(byName).length}</p>
-                        <p className={styles.jobSummaryLabel}>Job Types</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Accordion list */}
-            <div className={styles.accordionList}>
-                {Object.entries(byName).map(([name, logs]) => (
-                    <JobAccordionRow
-                        key={name}
-                        name={name}
-                        logs={logs}
-                        prevLatestId={prevLatestMap[name] ?? null}
-                    />
-                ))}
-            </div>
-        </div>
-    );
-};
-
 export const AdminStatsPage = () => {
     const [activeTab, setActiveTab] = useState<TabType>('stats');
     const [data, setData] = useState<SystemOverview | null>(null);
-    const [prevJobs, setPrevJobs] = useState<JobLog[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [pdpMetrics, setPdpMetrics] = useState<PdpMetric[]>([]);
-    const [pdpLoading, setPdpLoading] = useState(true);
+    const [pdpLoading, setPdpLoading] = useState(false);
     const [pdpError, setPdpError] = useState<string | null>(null);
     const [pdpUpdatedAt, setPdpUpdatedAt] = useState<string | null>(null);
 
@@ -730,38 +441,66 @@ export const AdminStatsPage = () => {
         return fallback;
     };
 
-    const fetchAll = async () => {
-        setLoading(true);
-        setPdpLoading(true);
+    const fetchOverview = async (withLoader = false) => {
+        if (withLoader) {
+            setLoading(true);
+        }
+
         setError(null);
-        setPdpError(null);
 
-        const [overviewResult, metricsResult] = await Promise.allSettled([
-            systemService.getSystemOverview(),
-            pdpMetricsDashboardService.getBundle(),
-        ]);
-
-        if (overviewResult.status === 'fulfilled') {
-            setData(prev => {
-                setPrevJobs(prev?.recentJobs ?? null);
-                return overviewResult.value;
-            });
-        } else {
-            setError(getErrorMessage(overviewResult.reason, 'Failed to fetch system data'));
+        try {
+            const overview = await systemService.getSystemOverview();
+            setData(overview);
+        } catch (err) {
+            setError(getErrorMessage(err, 'Failed to fetch system data'));
+        } finally {
+            if (withLoader) {
+                setLoading(false);
+            }
         }
-
-        if (metricsResult.status === 'fulfilled') {
-            setPdpMetrics(metricsResult.value.metrics);
-            setPdpUpdatedAt(metricsResult.value.updatedAt);
-        } else {
-            setPdpError(getErrorMessage(metricsResult.reason, 'Failed to fetch PDP metrics'));
-        }
-
-        setLoading(false);
-        setPdpLoading(false);
     };
 
-    usePolling(fetchAll, 10000);
+    const fetchPdp = async (withLoader = false) => {
+        if (withLoader) {
+            setPdpLoading(true);
+        }
+
+        setPdpError(null);
+
+        try {
+            const bundle = await pdpMetricsDashboardService.getBundle();
+            setPdpMetrics(bundle.metrics);
+            setPdpUpdatedAt(bundle.updatedAt);
+        } catch (err) {
+            setPdpError(getErrorMessage(err, 'Failed to fetch PDP metrics'));
+        } finally {
+            if (withLoader) {
+                setPdpLoading(false);
+            }
+        }
+    };
+
+    useEffect(() => {
+        void fetchOverview(true);
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'pdp' && pdpMetrics.length === 0 && !pdpLoading) {
+            void fetchPdp(true);
+        }
+    }, [activeTab, pdpLoading, pdpMetrics.length]);
+
+    useEffect(() => {
+        const id = window.setInterval(() => {
+            void fetchOverview(false);
+
+            if (activeTab === 'pdp') {
+                void fetchPdp(false);
+            }
+        }, 10000);
+
+        return () => window.clearInterval(id);
+    }, [activeTab]);
 
     return (
         <div className={styles.statsContainer}>
@@ -837,20 +576,23 @@ export const AdminStatsPage = () => {
                     </svg>
                     <h2>Oops! Something went wrong</h2>
                     <p>{error}</p>
-                    <button onClick={fetchAll} className={styles.retryBtn}>Retry Connection</button>
+                    <button onClick={() => void fetchOverview(true)} className={styles.retryBtn}>Retry Connection</button>
                 </div>
             ) : data ? (
                 <div key={activeTab} className={styles.tabContent}>
                     {activeTab === 'stats'    && <StatsTab stats={data.businessStats} />}
                     {activeTab === 'overview' && <OverviewTab data={data.system} />}
-                    {activeTab === 'jobs'     && <JobsTab jobs={data.recentJobs} prevJobs={prevJobs} />}
+                    {activeTab === 'jobs'     && <JobsControlTab recentJobs={data.recentJobs} />}
                     {activeTab === 'pdp'      && (
                         <PdpMetricsTab
                             metrics={pdpMetrics}
                             loading={pdpLoading}
                             error={pdpError}
                             updatedAt={pdpUpdatedAt}
-                            onRetry={fetchAll}
+                            onRetry={() => {
+                                void fetchOverview(false);
+                                void fetchPdp(true);
+                            }}
                         />
                     )}
                 </div>

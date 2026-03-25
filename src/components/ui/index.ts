@@ -8,4 +8,5 @@ export { MessageStatusTick } from './MessageStatusTick/MessageStatusTick';
 export { Select } from './Select/Select';
 export { Skeleton } from './Skeleton/Skeleton';
 export { StatItem } from './StatItem/StatItem';
+export { Switch } from './Switch/Switch';
 export { Table } from './Table/Table';
