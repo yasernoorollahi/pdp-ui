@@ -30,6 +30,39 @@
   gap: 0.5rem;
 }
 
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.latestBanner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.08), rgba(15, 23, 42, 0.28));
+  border: 1px solid rgba(45, 212, 191, 0.14);
+}
+
+.latestLabel {
+  margin: 0;
+  color: #f97316;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.latestJob {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -38,13 +71,21 @@
 
 .item {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem;
   align-items: center;
   padding: 0.95rem 1rem;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.itemMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .jobName {
@@ -55,10 +96,11 @@
 }
 
 .details {
-  margin: 0.35rem 0 0;
+  margin: 0;
   color: #94a3b8;
   font-size: 0.82rem;
   line-height: 1.6;
+  white-space: nowrap;
 }
 
 .status {
@@ -81,6 +123,14 @@
 @media (max-width: 820px) {
   .item {
     grid-template-columns: 1fr;
+  }
+
+  .itemMain {
+    align-items: flex-start;
+  }
+
+  .details {
+    white-space: normal;
   }
 
   .status {

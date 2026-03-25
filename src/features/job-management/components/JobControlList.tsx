@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { Badge, GlassPanel, Input, Switch } from '../../../components/ui';
+import { Badge, Input, Switch } from '../../../components/ui';
 import type { AdminJobConfig } from '../../../services/adminJobs.service';
 import styles from './JobControlList.module.css';
 
@@ -12,6 +12,7 @@ interface JobControlListProps {
   onResetSearch: () => void;
   onToggleJob: (jobKey: string, enabled: boolean) => void;
   onResetJob: (jobKey: string) => void;
+  embedded?: boolean;
 }
 
 const SearchIcon = (
@@ -24,6 +25,14 @@ const SearchIcon = (
 const resolveJobEnabled = (job: AdminJobConfig) =>
   job.overrideEnabled ?? job.configuredEnabled ?? job.effectiveEnabled ?? false;
 
+const getSwitchDescription = (globalEnabled: boolean, draftEnabled: boolean) => {
+  if (!globalEnabled) {
+    return 'Disabled by global control';
+  }
+
+  return draftEnabled ? 'Applies immediately after save' : 'This job will remain off after save';
+};
+
 export const JobControlList = ({
   jobs,
   draftValues,
@@ -33,6 +42,7 @@ export const JobControlList = ({
   onResetSearch,
   onToggleJob,
   onResetJob,
+  embedded = false,
 }: JobControlListProps) => {
   const filteredJobs = jobs.filter((job) => {
     const query = searchTerm.trim().toLowerCase();
@@ -43,28 +53,30 @@ export const JobControlList = ({
     );
   });
 
-  return (
-    <GlassPanel className={styles.panel}>
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarCopy}>
-          <h3 className={styles.sectionTitle}>Per-job overrides</h3>
-          <p className={styles.sectionText}>Search, override, or reset each scheduler independently.</p>
+  const content = (
+    <>
+      {!embedded ? (
+        <div className={styles.toolbar}>
+          <div className={styles.toolbarCopy}>
+            <h3 className={styles.sectionTitle}>Per-job overrides</h3>
+            <p className={styles.sectionText}>Search, override, or reset each scheduler independently.</p>
+          </div>
+          <Input
+            aria-label="Search jobs"
+            className={styles.search}
+            icon={SearchIcon}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
+            onClear={searchTerm ? onResetSearch : undefined}
+            placeholder="Search by key or description"
+            value={searchTerm}
+          />
         </div>
-        <Input
-          aria-label="Search jobs"
-          className={styles.search}
-          icon={SearchIcon}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
-          onClear={searchTerm ? onResetSearch : undefined}
-          placeholder="Search by key or description"
-          value={searchTerm}
-        />
-      </div>
+      ) : null}
 
       {filteredJobs.length === 0 ? (
         <div className={styles.empty}>No jobs matched the current filter.</div>
       ) : (
-        <div className={styles.list}>
+        <div className={`${styles.list} ${embedded ? styles.listEmbedded : ''}`}>
           {filteredJobs.map((job) => {
             const baselineEnabled = resolveJobEnabled(job);
             const configuredEnabled = job.configuredEnabled ?? false;
@@ -75,11 +87,13 @@ export const JobControlList = ({
             return (
               <div
                 key={job.jobKey}
-                className={`${styles.row} ${!effectiveEnabled && draftEnabled ? styles.rowMuted : ''}`}
+                className={`${styles.row} ${embedded ? styles.rowEmbedded : ''} ${!effectiveEnabled && draftEnabled ? styles.rowMuted : ''}`}
               >
                 <div className={styles.jobIdentity}>
-                  <p className={styles.jobName}>{job.jobKey}</p>
-                  <p className={styles.jobDescription}>{job.description || 'No description provided.'}</p>
+                  <div className={styles.jobSummary}>
+                    <p className={styles.jobName}>{job.jobKey}</p>
+                    <p className={styles.jobDescription}>{job.description || 'No description provided.'}</p>
+                  </div>
                   <div className={styles.meta}>
                     <Badge variant={configuredEnabled ? 'emerald' : 'muted'}>
                       Configured: {configuredEnabled ? 'On' : 'Off'}
@@ -97,7 +111,7 @@ export const JobControlList = ({
                   <Switch
                     aria-label={`Toggle ${job.jobKey}`}
                     checked={draftEnabled}
-                    description={globalEnabled ? 'Applies immediately after save' : 'Will stay suppressed while global switch is off'}
+                    description={getSwitchDescription(globalEnabled, draftEnabled)}
                     label={draftEnabled ? 'Enabled' : 'Disabled'}
                     onChange={(checked) => onToggleJob(job.jobKey, checked)}
                   />
@@ -118,6 +132,12 @@ export const JobControlList = ({
           })}
         </div>
       )}
-    </GlassPanel>
+    </>
   );
+
+  if (embedded) {
+    return <div className={styles.embeddedRoot}>{content}</div>;
+  }
+
+  return <div className={styles.panel}>{content}</div>;
 };

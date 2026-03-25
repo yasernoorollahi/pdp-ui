@@ -10,6 +10,7 @@ interface JobExecutionHistoryProps {
 interface JobExecutionSummary {
   latestRun: JobLog;
   successfulRuns: number;
+  processedRuns: number;
   totalRuns: number;
 }
 
@@ -42,6 +43,7 @@ export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
           accumulator[job.jobName] = {
             latestRun: job,
             successfulRuns: job.status === 'SUCCESS' ? 1 : 0,
+            processedRuns: job.processedCount > 0 ? 1 : 0,
             totalRuns: 1,
           };
           return accumulator;
@@ -51,6 +53,7 @@ export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
         accumulator[job.jobName] = {
           latestRun: hasNewerRun ? job : existing.latestRun,
           successfulRuns: existing.successfulRuns + (job.status === 'SUCCESS' ? 1 : 0),
+          processedRuns: existing.processedRuns + (job.processedCount > 0 ? 1 : 0),
           totalRuns: existing.totalRuns + 1,
         };
 
@@ -139,7 +142,7 @@ export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
       </div>
 
       <div className={styles.runs}>
-        {recentJobSummaries.map(({ latestRun, successfulRuns, totalRuns }) => (
+        {recentJobSummaries.map(({ latestRun, successfulRuns, processedRuns, totalRuns }) => (
           <div
             key={latestRun.jobName}
             className={`${styles.run} ${highlightedJobNames.includes(latestRun.jobName) ? styles.runHighlight : ''}`}
@@ -147,18 +150,36 @@ export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
             <div className={styles.runTop}>
               <div className={styles.runTitleBlock}>
                 <p className={styles.runName}>{latestRun.jobName}</p>
-                {successfulRuns ? (
-                  <div
-                    aria-label={`${successfulRuns} successful runs`}
-                    className={styles.successDots}
-                  >
-                    {Array.from({ length: successfulRuns }).map((_, index) => (
-                      <span
-                        key={`${latestRun.jobName}-success-${index + 1}`}
-                        className={styles.successDot}
-                        title={`Successful run ${index + 1}`}
-                      />
-                    ))}
+                {(successfulRuns || processedRuns) ? (
+                  <div className={styles.indicatorRows}>
+                    {successfulRuns ? (
+                      <div
+                        aria-label={`${successfulRuns} successful runs`}
+                        className={styles.dotGroup}
+                      >
+                        {Array.from({ length: successfulRuns }).map((_, index) => (
+                          <span
+                            key={`${latestRun.jobName}-success-${index + 1}`}
+                            className={styles.successDot}
+                            title={`Successful run ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                    {processedRuns ? (
+                      <div
+                        aria-label={`${processedRuns} runs processed items`}
+                        className={styles.dotGroup}
+                      >
+                        {Array.from({ length: processedRuns }).map((_, index) => (
+                          <span
+                            key={`${latestRun.jobName}-processed-${index + 1}`}
+                            className={styles.processedDot}
+                            title={`Processed items run ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

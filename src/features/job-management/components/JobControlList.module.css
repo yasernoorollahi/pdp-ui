@@ -1,5 +1,13 @@
 .panel {
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
+}
+
+.embeddedRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .toolbar {
@@ -39,6 +47,10 @@
   gap: 0.9rem;
 }
 
+.listEmbedded {
+  gap: 0.65rem;
+}
+
 .row {
   display: grid;
   grid-template-columns: minmax(0, 1.8fr) auto auto;
@@ -50,11 +62,29 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
+.rowEmbedded {
+  padding: 0.85rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .rowMuted {
   border-color: rgba(248, 113, 113, 0.12);
 }
 
 .jobIdentity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.jobSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem;
   min-width: 0;
 }
 
@@ -67,9 +97,9 @@
 }
 
 .jobDescription {
-  margin: 0.35rem 0 0;
+  margin: 0;
   color: #94a3b8;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   line-height: 1.5;
 }
 
@@ -77,7 +107,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.7rem;
+  margin-top: 0;
 }
 
 .control {
@@ -124,6 +154,10 @@
 @media (max-width: 900px) {
   .row {
     grid-template-columns: 1fr;
+  }
+
+  .jobIdentity {
+    align-items: flex-start;
   }
 
   .control,
