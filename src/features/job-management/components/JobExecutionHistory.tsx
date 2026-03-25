@@ -1,9 +1,16 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, GlassPanel } from '../../../components/ui';
 import type { JobLog } from '../../../services/system.service';
 import styles from './JobExecutionHistory.module.css';
 
 interface JobExecutionHistoryProps {
   jobs: JobLog[];
+}
+
+interface JobExecutionSummary {
+  latestRun: JobLog;
+  successfulRuns: number;
+  totalRuns: number;
 }
 
 const formatDateTime = (value: string) =>
@@ -22,6 +29,70 @@ const getStatusVariant = (status: string) => {
 };
 
 export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
+  const [highlightedJobNames, setHighlightedJobNames] = useState<string[]>([]);
+  const previousLatestRunIdsRef = useRef<Record<string, string> | null>(null);
+  const highlightTimeoutsRef = useRef<Record<string, number>>({});
+
+  const recentJobSummaries = useMemo(
+    () => Object.values(
+      jobs.reduce<Record<string, JobExecutionSummary>>((accumulator, job) => {
+        const existing = accumulator[job.jobName];
+
+        if (!existing) {
+          accumulator[job.jobName] = {
+            latestRun: job,
+            successfulRuns: job.status === 'SUCCESS' ? 1 : 0,
+            totalRuns: 1,
+          };
+          return accumulator;
+        }
+
+        const hasNewerRun = new Date(job.startedAt).getTime() > new Date(existing.latestRun.startedAt).getTime();
+        accumulator[job.jobName] = {
+          latestRun: hasNewerRun ? job : existing.latestRun,
+          successfulRuns: existing.successfulRuns + (job.status === 'SUCCESS' ? 1 : 0),
+          totalRuns: existing.totalRuns + 1,
+        };
+
+        return accumulator;
+      }, {})
+    )
+      .sort((a, b) => new Date(b.latestRun.startedAt).getTime() - new Date(a.latestRun.startedAt).getTime())
+      .slice(0, 8),
+    [jobs]
+  );
+
+  useEffect(() => {
+    const previousLatestRunIds = previousLatestRunIdsRef.current;
+    const nextLatestRunIds = Object.fromEntries(
+      recentJobSummaries.map((summary) => [summary.latestRun.jobName, summary.latestRun.id])
+    );
+
+    if (previousLatestRunIds) {
+      const updatedJobNames = recentJobSummaries
+        .map((summary) => summary.latestRun.jobName)
+        .filter((jobName) => previousLatestRunIds[jobName] !== nextLatestRunIds[jobName]);
+
+      if (updatedJobNames.length > 0) {
+        setHighlightedJobNames((current) => Array.from(new Set([...current, ...updatedJobNames])));
+
+        updatedJobNames.forEach((jobName) => {
+          window.clearTimeout(highlightTimeoutsRef.current[jobName]);
+          highlightTimeoutsRef.current[jobName] = window.setTimeout(() => {
+            setHighlightedJobNames((current) => current.filter((name) => name !== jobName));
+            delete highlightTimeoutsRef.current[jobName];
+          }, 3200);
+        });
+      }
+    }
+
+    previousLatestRunIdsRef.current = nextLatestRunIds;
+  }, [recentJobSummaries]);
+
+  useEffect(() => () => {
+    Object.values(highlightTimeoutsRef.current).forEach((timeoutId) => window.clearTimeout(timeoutId));
+  }, []);
+
   if (!jobs.length) {
     return (
       <GlassPanel className={styles.panel}>
@@ -29,10 +100,6 @@ export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
       </GlassPanel>
     );
   }
-
-  const recentRuns = [...jobs]
-    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
-    .slice(0, 8);
 
   const successCount = jobs.filter((job) => job.status === 'SUCCESS').length;
   const failedCount = jobs.filter((job) => job.status === 'FAILED').length;
@@ -72,22 +139,43 @@ export const JobExecutionHistory = ({ jobs }: JobExecutionHistoryProps) => {
       </div>
 
       <div className={styles.runs}>
-        {recentRuns.map((job) => (
-          <div key={job.id} className={styles.run}>
+        {recentJobSummaries.map(({ latestRun, successfulRuns, totalRuns }) => (
+          <div
+            key={latestRun.jobName}
+            className={`${styles.run} ${highlightedJobNames.includes(latestRun.jobName) ? styles.runHighlight : ''}`}
+          >
             <div className={styles.runTop}>
-              <p className={styles.runName}>{job.jobName}</p>
+              <div className={styles.runTitleBlock}>
+                <p className={styles.runName}>{latestRun.jobName}</p>
+                {successfulRuns ? (
+                  <div
+                    aria-label={`${successfulRuns} successful runs`}
+                    className={styles.successDots}
+                  >
+                    {Array.from({ length: successfulRuns }).map((_, index) => (
+                      <span
+                        key={`${latestRun.jobName}-success-${index + 1}`}
+                        className={styles.successDot}
+                        title={`Successful run ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
               <div className={styles.runMeta}>
-                <Badge variant={getStatusVariant(job.status)}>{job.status}</Badge>
-                <Badge variant="muted">{job.duration}ms</Badge>
-                <Badge variant="muted">{formatDateTime(job.startedAt)}</Badge>
+                <Badge variant={getStatusVariant(latestRun.status)}>{latestRun.status}</Badge>
+                <Badge variant="muted">{latestRun.duration}ms</Badge>
+                <Badge variant="muted">{formatDateTime(latestRun.startedAt)}</Badge>
               </div>
             </div>
             <p className={styles.runInfo}>
-              Processed {job.processedCount} items
+              Processed {latestRun.processedCount} items
               {' - '}
-              Finished {formatDateTime(job.finishedAt)}
+              Finished {formatDateTime(latestRun.finishedAt)}
+              {' - '}
+              {totalRuns} total run{totalRuns === 1 ? '' : 's'}
             </p>
-            {job.errorMessage && <p className={styles.error}>{job.errorMessage}</p>}
+            {latestRun.errorMessage && <p className={styles.error}>{latestRun.errorMessage}</p>}
           </div>
         ))}
       </div>

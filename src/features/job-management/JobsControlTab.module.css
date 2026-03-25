@@ -63,6 +63,7 @@
 .globalHeader,
 .statusHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
@@ -215,5 +216,12 @@
 
   .globalMeta {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .globalHeader {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
