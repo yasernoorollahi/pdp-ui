@@ -10,3 +10,4 @@ export { Skeleton } from './Skeleton/Skeleton';
 export { StatItem } from './StatItem/StatItem';
 export { Switch } from './Switch/Switch';
 export { Table } from './Table/Table';
+export { Textarea } from './Textarea/Textarea';

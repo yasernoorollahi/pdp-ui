@@ -1,0 +1,93 @@
+.statePanel {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.iconWrap {
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 1.3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-subtle);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03)),
+    rgba(7, 14, 18, 0.48);
+}
+
+.empty .iconWrap {
+  color: var(--color-teal);
+  box-shadow: 0 18px 40px rgba(45, 212, 191, 0.12);
+}
+
+.error .iconWrap {
+  color: var(--color-red-light);
+  box-shadow: 0 18px 40px rgba(239, 68, 68, 0.14);
+}
+
+.iconWrap svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.content {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: 1.1rem;
+}
+
+.description {
+  max-width: 34rem;
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+}
+
+.primaryAction {
+  margin-top: 0.4rem;
+  padding: 0.7rem 1.05rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-glass);
+  background: var(--color-teal-10);
+  color: var(--color-teal);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.primaryAction:hover {
+  transform: translateY(-1px);
+  background: var(--color-teal-18);
+  border-color: var(--color-teal-20);
+}
+
+.suggestionList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+.suggestionButton {
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.suggestionButton:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-teal-20);
+  background: var(--color-teal-10);
+}
