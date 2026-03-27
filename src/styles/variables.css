@@ -60,6 +60,12 @@
   --color-glass-dark:     rgba(9, 18, 28, 0.96);
   --color-glass-panel:    rgba(6, 12, 16, 0.75);
   --color-glass-overlay:  rgba(6, 12, 16, 0.6);
+  --color-chat-panel:     rgba(8, 18, 22, 0.78);
+  --color-chat-panel-strong: rgba(7, 14, 18, 0.9);
+  --color-chat-highlight: rgba(45, 212, 191, 0.26);
+  --color-chat-highlight-soft: rgba(13, 148, 136, 0.22);
+  --color-chat-sheen:     rgba(255, 255, 255, 0.18);
+  --color-chat-shadow:    rgba(2, 8, 10, 0.52);
   --color-bg-gradient:
     radial-gradient(120% 95% at 82% 8%, rgba(13, 148, 136, 0.28) 0%, transparent 58%),
     radial-gradient(95% 90% at 10% 88%, rgba(45, 212, 191, 0.2) 0%, transparent 56%),

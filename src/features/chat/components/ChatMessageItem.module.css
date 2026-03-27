@@ -12,34 +12,34 @@
 }
 
 .messageBubble {
-  max-width: min(75ch, 78%);
-  border-radius: 16px;
-  padding: 0.72rem 0.88rem 0.58rem;
+  max-width: min(78ch, 84%);
+  border-radius: 22px;
+  padding: 1rem 1.05rem 0.92rem;
   border: 1px solid transparent;
   position: relative;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
 }
 
 .bubbleUser {
   background: linear-gradient(
     145deg,
-    rgba(13, 148, 136, 0.22),
+    rgba(13, 148, 136, 0.26),
     rgba(45, 212, 191, 0.16),
-    rgba(255, 255, 255, 0.035)
+    rgba(255, 255, 255, 0.05)
   );
-  border-color: rgba(94, 234, 212, 0.35);
+  border-color: rgba(94, 234, 212, 0.3);
   box-shadow:
-    0 14px 30px rgba(3, 14, 18, 0.45),
+    0 18px 38px rgba(3, 14, 18, 0.42),
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .bubbleSystem {
-  background: rgba(9, 18, 22, 0.55);
-  border-color: rgba(148, 163, 184, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(9, 18, 22, 0.7);
+  border-color: rgba(148, 163, 184, 0.18);
   box-shadow:
-    0 8px 20px rgba(3, 10, 14, 0.35),
+    0 12px 24px rgba(3, 10, 14, 0.32),
     inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
@@ -56,6 +56,33 @@
   pointer-events: none;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.senderTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.24rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metaInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .messageText {
   font-size: 0.92rem;
   color: var(--color-text-primary);
@@ -65,13 +92,11 @@
 }
 
 .metaRow {
-  margin-top: 0.35rem;
-  display: inline-flex;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
-  margin-left: auto;
-  width: 100%;
-  justify-content: flex-end;
+  gap: 0.45rem;
 }
 
 .messageTime {
@@ -80,16 +105,11 @@
   letter-spacing: 0.02em;
 }
 
-.processingBadge {
+.stateBadge {
   text-transform: uppercase;
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   letter-spacing: 0.08em;
-  padding: 0.14rem 0.5rem;
-}
-
-.processingIcon {
-  font-size: 0.7rem;
-  line-height: 1;
+  padding: 0.2rem 0.55rem;
 }
 
 @keyframes messageIn {
@@ -100,5 +120,17 @@
   to {
     transform: translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .messageBubble {
+    max-width: 100%;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }

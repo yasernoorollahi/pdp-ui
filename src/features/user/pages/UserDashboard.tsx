@@ -1,6 +1,6 @@
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UserChatPanel } from '../../../features/chat/components/UserChatPanel';
+import { UserChatPage } from '../../../features/chat/pages/UserChatPage';
 import { InsightsNewPage } from '../../insights-new/pages/InsightsNewPage';
 import styles from './UserDashboard.module.css';
 
@@ -428,7 +428,7 @@ export const UserDashboard = () => {
 
         {/* Content */}
         <div className={styles.content}>
-          {isChatRoute ? <UserChatPanel /> : null}
+          {isChatRoute ? <UserChatPage /> : null}
           {isInsightsRoute ? <InsightsNewPage /> : null}
 
           {!isChatRoute && !isInsightsRoute ? (

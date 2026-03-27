@@ -1,8 +1,15 @@
 .skeletonWrap {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  padding: 1rem;
+  gap: 1rem;
+  padding: 1rem 0.2rem;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .leftRow,
@@ -18,26 +25,52 @@
   justify-content: flex-end;
 }
 
-.shortLine,
-.mediumLine,
-.longLine {
-  width: 12rem;
-  height: 2.6rem !important;
-  border-radius: 14px !important;
+.titleBlock,
+.pillBlock,
+.bubble {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 18%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 82%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.titleBlock {
+  width: 10rem;
+  height: 1.2rem;
+  border-radius: 999px;
+}
+
+.pillBlock {
+  width: 6.5rem;
+  height: 1.2rem;
+  border-radius: 999px;
+}
+
+.bubble {
+  height: 5.25rem;
+  border-radius: 22px;
 }
 
 .mediumLine {
-  width: 17rem;
+  width: 19rem;
 }
 
 .longLine {
-  width: 20rem;
+  width: 24rem;
+}
+
+.shortLine {
+  width: 15rem;
 }
 
 @media (max-width: 680px) {
-  .shortLine,
   .mediumLine,
-  .longLine {
-    width: min(72vw, 18rem);
+  .longLine,
+  .shortLine {
+    width: min(82vw, 19rem);
   }
 }

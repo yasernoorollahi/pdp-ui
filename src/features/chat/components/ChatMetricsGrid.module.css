@@ -1,0 +1,23 @@
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  animation: fadeInUp 0.55s ease both;
+}
+
+.metricsGrid :global(svg) {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 1180px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .metricsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -19,29 +19,46 @@ export const ChatMessageItem = ({ message }: ChatMessageItemProps) => {
   const isUserMessage = message.sender === 'USER';
   const signalDecision = message.signalDecision?.toUpperCase() ?? null;
   const processingStatus = message.processingStatus?.toUpperCase() ?? null;
-  const showProcessingStatus = isUserMessage && message.status === 'sent';
-
-  const processingBadge = (() => {
-    if (!showProcessingStatus) return null;
-    if (signalDecision === 'IGNORE') return null;
-    if (signalDecision === 'USEFUL' && processingStatus === 'DONE') {
-      return { variant: 'emerald', icon: '✨' };
-    }
-    return { variant: 'gold', icon: '⏳' };
-  })();
+  const signalBadge: { variant: 'emerald' | 'gold' | 'muted'; label: string } | null =
+    signalDecision === 'USEFUL'
+      ? { variant: 'emerald', label: 'Useful signal' }
+      : signalDecision === 'IGNORE'
+        ? { variant: 'muted', label: 'Chat lane' }
+        : signalDecision
+          ? { variant: 'gold', label: signalDecision.toLowerCase().replace(/_/g, ' ') }
+          : null;
+  const processingBadge: { variant: 'emerald' | 'gold' | 'red'; label: string } | null =
+    processingStatus === 'DONE'
+      ? { variant: 'emerald', label: 'Processed' }
+      : processingStatus
+        ? {
+            variant: processingStatus === 'FAILED' ? 'red' : 'gold',
+            label: processingStatus.toLowerCase().replace(/_/g, ' '),
+          }
+        : null;
 
   return (
     <article className={`${styles.messageRow} ${isUserMessage ? styles.rowUser : styles.rowSystem}`}>
       <div className={`${styles.messageBubble} ${isUserMessage ? styles.bubbleUser : styles.bubbleSystem}`}>
+        <div className={styles.headerRow}>
+          <span className={styles.senderTag}>{isUserMessage ? 'You' : 'PDP Assistant'}</span>
+          <div className={styles.metaInline}>
+            <span className={styles.messageTime}>{formatTime(message.createdAt)}</span>
+            {isUserMessage ? <MessageStatusTick status={message.status} /> : null}
+          </div>
+        </div>
+
         <p className={styles.messageText}>{message.text}</p>
+
         <div className={styles.metaRow}>
-          <span className={styles.messageTime}>{formatTime(message.createdAt)}</span>
-          {isUserMessage ? <MessageStatusTick status={message.status} /> : null}
+          {signalBadge ? (
+            <Badge variant={signalBadge.variant} className={styles.stateBadge}>
+              {signalBadge.label}
+            </Badge>
+          ) : null}
           {processingBadge ? (
-            <Badge variant={processingBadge.variant} className={styles.processingBadge}>
-              <span className={styles.processingIcon} aria-hidden="true">
-                {processingBadge.icon}
-              </span>
+            <Badge variant={processingBadge.variant} className={styles.stateBadge}>
+              {processingBadge.label}
             </Badge>
           ) : null}
         </div>
