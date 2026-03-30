@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { insightsService } from '../../../services/insights.service';
 import type {
   TimelinePoint,
@@ -136,9 +136,13 @@ export const InsightsNewPage = () => {
     }
   }, [days]);
 
+  const triggerInitialLoad = useEffectEvent(() => {
+    void loadInsights();
+  });
+
   useEffect(() => {
-    loadInsights();
-  }, [loadInsights]);
+    triggerInitialLoad();
+  }, []);
 
   const lastUpdated = useMemo(() => {
     const lastTimelineDate = timelineState.data?.[timelineState.data.length - 1]?.date;

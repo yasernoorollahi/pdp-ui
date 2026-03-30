@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { TimelinePoint } from '../../../services/insights.service';
 import { ResponsiveLine } from '@nivo/line';
@@ -38,16 +38,10 @@ export const NewTimelineChart = ({ data, loading, error, onRetry, days }: NewTim
     Friction: true,
   });
 
-  const safeData = data ?? [];
+  const safeData = useMemo(() => data ?? [], [data]);
   const minRange = Math.min(7, safeData.length || 7);
-
-  useEffect(() => {
-    if (safeData.length > 0) {
-      const next = Math.max(minRange, Math.min(range, safeData.length));
-      if (next !== range) setRange(next);
-    }
-  }, [minRange, range, safeData.length]);
-  const visibleData = useMemo(() => safeData.slice(-Math.max(1, range)), [safeData, range]);
+  const safeRange = safeData.length > 0 ? Math.max(minRange, Math.min(range, safeData.length)) : Math.max(1, range);
+  const visibleData = useMemo(() => safeData.slice(-Math.max(1, safeRange)), [safeData, safeRange]);
 
   const normalized = useMemo(() => {
     const frictionMax = Math.max(...visibleData.map((item) => item.friction), 1);
@@ -142,10 +136,10 @@ export const NewTimelineChart = ({ data, loading, error, onRetry, days }: NewTim
   return (
     <Card className={`${styles.card} glassCard`}>
       <div className={styles.header}>
-        <div>
-          <p className={styles.kicker}>Behavioral Metro</p>
-          <h3 className={styles.title}>Multi-signal timeline · Last {range} days</h3>
-        </div>
+          <div>
+            <p className={styles.kicker}>Behavioral Metro</p>
+            <h3 className={styles.title}>Multi-signal timeline · Last {safeRange} days</h3>
+          </div>
         <div className={styles.headerNote}>Toggle signals and zoom for clarity.</div>
       </div>
 
@@ -171,10 +165,10 @@ export const NewTimelineChart = ({ data, loading, error, onRetry, days }: NewTim
             type="range"
             min={minRange}
             max={data.length}
-            value={range}
+            value={safeRange}
             onChange={(event) => setRange(Number(event.target.value))}
           />
-          <span className={styles.zoomValue}>{range}d</span>
+          <span className={styles.zoomValue}>{safeRange}d</span>
         </div>
       </div>
 

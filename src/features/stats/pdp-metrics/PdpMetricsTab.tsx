@@ -13,7 +13,6 @@ import {
   buildScatter,
   buildSeries,
   buildSeriesSet,
-  buildViolin,
   getMetricAvgDuration,
   getMetricCount,
 } from './pdpMetricsCharts';

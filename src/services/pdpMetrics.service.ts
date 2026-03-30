@@ -59,8 +59,7 @@ export const pdpMetricsService = {
     );
 
     return results
-      .filter((result): result is PromiseFulfilledResult<{ data: ActuatorMetric }> => result.status === 'fulfilled')
-      .map((result) => result.value.data)
+      .flatMap((result) => (result.status === 'fulfilled' ? [result.value.data] : []))
       .map((metric) => ({
         name: metric.name,
         measurements: metric.measurements ?? [],
