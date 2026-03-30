@@ -5,6 +5,7 @@
   min-height: 240px;
   animation: cardIn 0.5s ease both;
   border: 1px solid rgba(192, 132, 252, 0.18);
+  overflow: visible;
 }
 
 .header {

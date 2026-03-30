@@ -19,7 +19,7 @@ import { NewTimelineChart } from '../components/NewTimelineChart';
 import { NewReflectionCard } from '../components/NewReflectionCard';
 import { NewBehaviorHeatCalendar } from '../components/NewBehaviorHeatCalendar';
 import { NewMoodCloud } from '../components/NewMoodCloud';
-import { formatLongDate, interpretationText, SIGNAL_COLORS, clamp01 } from '../utils/signalUtils';
+import { formatLongDate, interpretationText, levelLabel, SIGNAL_COLORS, clamp01 } from '../utils/signalUtils';
 import styles from './InsightsNewPage.module.css';
 
 type LoadState<T> = {
@@ -44,6 +44,14 @@ const average = (values: number[]) => {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 };
+
+const SUMMARY_ITEMS = [
+  { key: 'energy', label: 'Energy' },
+  { key: 'motivation', label: 'Motivation' },
+  { key: 'social', label: 'Social' },
+  { key: 'discipline', label: 'Discipline' },
+  { key: 'friction', label: 'Friction' },
+] as const;
 
 export const InsightsNewPage = () => {
   const days = 15;
@@ -154,6 +162,78 @@ export const InsightsNewPage = () => {
     return { energy, motivation, social, discipline, friction };
   }, [timelineState.data]);
 
+  const summaryCards = useMemo(() => {
+    if (!summarySignals) return [];
+
+    return SUMMARY_ITEMS.map((item) => ({
+      ...item,
+      value: summarySignals[item.key],
+      percent: Math.round(summarySignals[item.key] * 100),
+      hint: interpretationText(item.key, summarySignals[item.key]),
+      tone: item.key === 'friction' ? 'Watch' : levelLabel(summarySignals[item.key]),
+    }));
+  }, [summarySignals]);
+
+  const heroHighlights = useMemo(() => {
+    if (!summarySignals) return [];
+
+    const positiveSignals = SUMMARY_ITEMS
+      .filter((item) => item.key !== 'friction')
+      .map((item) => ({
+        ...item,
+        value: summarySignals[item.key],
+        percent: Math.round(summarySignals[item.key] * 100),
+        hint: interpretationText(item.key, summarySignals[item.key]),
+      }));
+
+    const strongest = positiveSignals.reduce((best, item) => (item.value > best.value ? item : best), positiveSignals[0]);
+    const weakest = positiveSignals.reduce((lowest, item) => (item.value < lowest.value ? item : lowest), positiveSignals[0]);
+    const friction = summarySignals.friction;
+
+    return [
+      {
+        label: 'Window',
+        value: `${timelineState.data?.length ?? 0} snapshots`,
+        hint: `Tracking the last ${days} days of behavior.`,
+      },
+      {
+        label: 'Strongest Signal',
+        value: `${strongest.label} ${strongest.percent}%`,
+        hint: strongest.hint,
+      },
+      friction >= 0.5
+        ? {
+            label: 'Watchpoint',
+            value: `Friction ${Math.round(friction * 100)}%`,
+            hint: interpretationText('friction', friction),
+          }
+        : {
+            label: 'Soft Spot',
+            value: `${weakest.label} ${weakest.percent}%`,
+            hint: weakest.hint,
+          },
+    ];
+  }, [days, summarySignals, timelineState.data]);
+
+  const socialPulseData = useMemo<SocialTrend | null>(() => {
+    if (timelineState.data && timelineState.data.length > 0) {
+      const trend = timelineState.data.map((item) => ({
+        date: item.date,
+        value: item.social,
+      }));
+
+      return {
+        total: trend.reduce((sum, item) => sum + item.value, 0),
+        trend,
+      };
+    }
+
+    return socialState.data;
+  }, [socialState.data, timelineState.data]);
+
+  const socialPulseLoading = !socialPulseData && (timelineState.loading || socialState.loading);
+  const socialPulseError = socialPulseData ? null : timelineState.error ?? socialState.error;
+
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
@@ -161,6 +241,17 @@ export const InsightsNewPage = () => {
           <p className={styles.heroKicker}>Behavioral Observability · Last {days} Days</p>
           <h2 className={styles.heroTitle}>Your Cognitive Mirror</h2>
           <p className={styles.heroSubtitle}>Signals distilled into patterns. Observe your energy, momentum, and behavioral rhythms.</p>
+          {heroHighlights.length > 0 ? (
+            <div className={styles.heroHighlights}>
+              {heroHighlights.map((item) => (
+                <div key={item.label} className={styles.heroHighlight}>
+                  <span className={styles.heroHighlightLabel}>{item.label}</span>
+                  <span className={styles.heroHighlightValue}>{item.value}</span>
+                  <span className={styles.heroHighlightHint}>{item.hint}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className={styles.heroMeta}>
           <span className={styles.heroMetaLabel}>Last updated</span>
@@ -168,21 +259,27 @@ export const InsightsNewPage = () => {
         </div>
       </div>
 
-      {summarySignals ? (
+      {summaryCards.length > 0 ? (
         <div className={styles.summaryRow}>
-          {([
-            { key: 'energy', label: 'Energy', value: summarySignals.energy },
-            { key: 'motivation', label: 'Motivation', value: summarySignals.motivation },
-            { key: 'social', label: 'Social', value: summarySignals.social },
-            { key: 'discipline', label: 'Discipline', value: summarySignals.discipline },
-            { key: 'friction', label: 'Friction', value: summarySignals.friction },
-          ] as const).map((item) => (
+          {summaryCards.map((item) => (
             <div key={item.key} className={styles.summaryCard}>
-              <div className={styles.summaryLabel}>{item.label}</div>
-              <div className={styles.summaryValue} style={{ color: SIGNAL_COLORS[item.key] }}>
-                {Math.round(item.value * 100)}%
+              <div className={styles.summaryTop}>
+                <div className={styles.summaryLabel}>{item.label}</div>
+                <div className={styles.summaryTone}>{item.tone}</div>
               </div>
-              <div className={styles.summaryHint}>{interpretationText(item.key, item.value)}</div>
+              <div className={styles.summaryValue} style={{ color: SIGNAL_COLORS[item.key] }}>
+                {item.percent}%
+              </div>
+              <div className={styles.summaryTrack}>
+                <span
+                  className={styles.summaryTrackFill}
+                  style={{
+                    width: `${Math.max(item.percent, 8)}%`,
+                    background: SIGNAL_COLORS[item.key],
+                  }}
+                />
+              </div>
+              <div className={styles.summaryHint}>{item.hint}</div>
             </div>
           ))}
         </div>
@@ -217,9 +314,9 @@ export const InsightsNewPage = () => {
           onRetry={loadInsights}
         />
         <NewSocialPulseBar
-          data={socialState.data}
-          loading={socialState.loading}
-          error={socialState.error}
+          data={socialPulseData}
+          loading={socialPulseLoading}
+          error={socialPulseError}
           onRetry={loadInsights}
         />
         <NewDisciplineTraceHeatmap

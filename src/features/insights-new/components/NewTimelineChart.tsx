@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { TimelinePoint } from '../../../services/insights.service';
 import { ResponsiveLine } from '@nivo/line';
-import { SIGNAL_COLORS, clamp01, formatShortDate, interpretationText, levelLabel } from '../utils/signalUtils';
+import { SIGNAL_COLORS, clamp01, formatShortDate } from '../utils/signalUtils';
 import styles from './NewTimelineChart.module.css';
 
 type NewTimelineChartProps = {
@@ -15,7 +15,7 @@ type NewTimelineChartProps = {
 
 type SignalToggle = {
   id: string;
-  key: keyof TimelinePoint;
+  key: Exclude<keyof TimelinePoint, 'date'>;
   color: string;
   normalize?: (value: number, max: number) => number;
 };
@@ -197,28 +197,29 @@ export const NewTimelineChart = ({ data, loading, error, onRetry, days }: NewTim
           enableGridY
           enableGridX={false}
           lineWidth={2.6}
-          useMesh
           enableSlices="x"
           crosshairType="x"
           sliceTooltip={({ slice }) => {
-            const date = String(slice.points[0]?.data.xFormatted ?? slice.points[0]?.data.x ?? '');
-            const points = slice.points.filter((point) => point.serieId);
+            const dateLabel = String(slice.points[0]?.data.xFormatted ?? slice.points[0]?.data.x ?? '');
+            const orderedPoints = [...slice.points].sort((first, second) => Number(second.data.y ?? 0) - Number(first.data.y ?? 0));
+
             return (
               <div className={styles.tooltip}>
-                <div className={styles.tooltipTitle}>{date}</div>
-                {points.map((point) => {
-                  const value = typeof point.data.y === 'number' ? point.data.y : 0;
-                  const signalKey = String(point.serieId).toLowerCase() as 'energy' | 'motivation' | 'social' | 'discipline' | 'friction';
+                <div className={styles.tooltipTitle}>{dateLabel}</div>
+                {orderedPoints.map((point) => {
+                  const signal = SIGNALS.find((item) => item.id === point.seriesId);
+                  const value = Math.round(Number(point.data.y ?? 0) * 100);
+
                   return (
-                    <div key={point.id} className={styles.tooltipRow}>
-                      <span className={styles.tooltipLabel} style={{ color: String(point.serieColor) }}>
-                        {point.serieId}
+                    <div key={`${point.seriesId}-${String(point.data.x ?? '')}`} className={styles.tooltipRow}>
+                      <span className={styles.tooltipLabel} style={{ color: signal?.color ?? '#f8fafc' }}>
+                        {point.seriesId}
                       </span>
-                      <span className={styles.tooltipValue}>{levelLabel(value)}</span>
-                      <span className={styles.tooltipHint}>{interpretationText(signalKey, value)}</span>
+                      <span className={styles.tooltipValue}>{value}%</span>
                     </div>
                   );
                 })}
+                <div className={styles.tooltipHint}>Compare all active signals for this day.</div>
               </div>
             );
           }}

@@ -1,7 +1,7 @@
 import { Card, Button, Skeleton } from '../../../components/ui';
 import type { TimelinePoint } from '../../../services/insights.service';
 import { ResponsiveCalendar } from '@nivo/calendar';
-import { SIGNAL_COLORS, clamp01, formatLongDate, levelLabel } from '../utils/signalUtils';
+import { clamp01 } from '../utils/signalUtils';
 import styles from './NewBehaviorHeatCalendar.module.css';
 
 type NewBehaviorHeatCalendarProps = {
@@ -12,13 +12,6 @@ type NewBehaviorHeatCalendarProps = {
 };
 
 const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
-
-const describe = (value: number) => {
-  if (value >= 0.75) return 'High';
-  if (value >= 0.5) return 'Medium';
-  if (value >= 0.3) return 'Low';
-  return 'Very Low';
-};
 
 export const NewBehaviorHeatCalendar = ({ data, loading, error, onRetry }: NewBehaviorHeatCalendarProps) => {
   if (loading) {
@@ -127,26 +120,6 @@ export const NewBehaviorHeatCalendar = ({ data, loading, error, onRetry }: NewBe
           monthBorderColor="rgba(255,255,255,0.06)"
           dayBorderWidth={1}
           dayBorderColor="rgba(255,255,255,0.05)"
-          tooltip={(datum) => {
-            const metrics = (datum.data as { metrics?: { energy: number; motivation: number; social: number; discipline: number; friction: number } })?.metrics;
-            return (
-              <div className={styles.tooltip}>
-                <span className={styles.tooltipTitle}>{formatLongDate(datum.day)}</span>
-                {metrics ? (
-                  <>
-                    <span className={styles.tooltipRow} style={{ color: SIGNAL_COLORS.energy }}>Energy: {describe(metrics.energy)}</span>
-                    <span className={styles.tooltipRow} style={{ color: SIGNAL_COLORS.motivation }}>Motivation: {describe(metrics.motivation)}</span>
-                    <span className={styles.tooltipRow} style={{ color: SIGNAL_COLORS.social }}>Social: {describe(metrics.social)}</span>
-                    <span className={styles.tooltipRow} style={{ color: SIGNAL_COLORS.discipline }}>Discipline: {describe(metrics.discipline)}</span>
-                    <span className={styles.tooltipRow} style={{ color: SIGNAL_COLORS.friction }}>Friction: {describe(metrics.friction)}</span>
-                  </>
-                ) : (
-                  <span className={styles.tooltipRow}>No data</span>
-                )}
-                <span className={styles.tooltipHint}>Overall: {levelLabel((datum.value ?? 0) / 100)}</span>
-              </div>
-            );
-          }}
           theme={{
             text: {
               fill: 'rgba(148, 163, 184, 0.9)',
@@ -163,7 +136,6 @@ export const NewBehaviorHeatCalendar = ({ data, loading, error, onRetry }: NewBe
               },
             },
           }}
-          animate
         />
       </div>
     </Card>
