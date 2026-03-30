@@ -26,6 +26,7 @@ export default function AppRouter() {
             <Route path="/app" element={<UserDashboard />} />
             <Route path="/app/chat" element={<UserDashboard />} />
             <Route path="/app/insights" element={<UserDashboard />} />
+            <Route path="/app/cognitive-space" element={<UserDashboard />} />
           </Route>
         </Route>
 

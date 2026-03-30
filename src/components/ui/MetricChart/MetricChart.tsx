@@ -282,17 +282,24 @@ export const MetricChart = ({
 
   if (variant === 'pie' && pie.length) {
     const total = pie.reduce((acc, item) => acc + item.value, 0) || 1;
-    let startAngle = 0;
+    const slices = pie.reduce<Array<{ slice: (typeof pie)[number]; index: number; startAngle: number; endAngle: number }>>(
+      (acc, slice, index) => {
+        const startAngle = acc[index - 1]?.endAngle ?? 0;
+        const endAngle = startAngle + (slice.value / total) * 360;
+        acc.push({ slice, index, startAngle, endAngle });
+        return acc;
+      },
+      [],
+    );
     return (
       <div className={`${styles.chart} ${styles.pie} ${getSizeClass(size)} ${className ?? ''}`}>
         <svg className={styles.chartSvg} viewBox="0 0 120 120" aria-hidden>
-          {pie.map((slice, index) => {
-            const angle = (slice.value / total) * 360;
-            const path = describeArc(60, 60, 46, startAngle, startAngle + angle);
+          {slices.map(({ slice, index, startAngle, endAngle }) => {
+            const angle = endAngle - startAngle;
+            const path = describeArc(60, 60, 46, startAngle, endAngle);
             const largeArc = angle > 180 ? 1 : 0;
-            const start = polarToCartesian(60, 60, 46, startAngle + angle);
+            const start = polarToCartesian(60, 60, 46, endAngle);
             const end = polarToCartesian(60, 60, 46, startAngle);
-            startAngle += angle;
             return (
               <path
                 key={slice.label}
@@ -377,7 +384,7 @@ export const MetricChart = ({
           {(variant === 'stacked-area' ? stacked : series).map((item, index) => {
             const valuesToPlot =
               variant === 'stacked-area'
-                ? item.values.map((value, i) =>
+                ? item.values.map((_, i) =>
                     stacked
                       .slice(0, index + 1)
                       .reduce((acc, seriesItem) => acc + (seriesItem.values[i] ?? 0), 0),

@@ -2,6 +2,7 @@ import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UserChatPage } from '../../../features/chat/pages/UserChatPage';
 import { InsightsNewPage } from '../../insights-new/pages/InsightsNewPage';
+import { InsightExplorerPage } from '../../insight-explorer/pages/InsightExplorerPage';
 import styles from './UserDashboard.module.css';
 
 const navItems = [
@@ -57,6 +58,25 @@ const navItems = [
       >
         <path d="M3 3v18h18" />
         <path d="M7 15l4-6 4 3 5-7" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Cognitive Space',
+    path: '/app/cognitive-space',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <path d="M12 3c-4.97 0-9 3.58-9 8s4.03 8 9 8 9-3.58 9-8-4.03-8-9-8z" />
+        <path d="M9 10.5c.5-1.4 1.7-2.5 3-2.5 1.7 0 3 1.34 3 3 0 2-1.8 2.48-2.76 3.13-.57.39-.9.82-.96 1.37" />
+        <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
       </svg>
     ),
   },
@@ -305,6 +325,7 @@ export const UserDashboard = () => {
   const location = useLocation();
   const isChatRoute = location.pathname === '/app/chat';
   const isInsightsRoute = location.pathname === '/app/insights';
+  const isCognitiveSpaceRoute = location.pathname === '/app/cognitive-space';
 
   const initials = getInitials(user?.email ?? '');
 
@@ -370,9 +391,17 @@ export const UserDashboard = () => {
         {/* Topbar */}
         <header className={styles.topbar}>
           <div className={styles.topbarLeft}>
-            <h1 className={styles.pageTitle}>{isChatRoute ? 'Chat' : isInsightsRoute ? 'Insights' : 'Overview'}</h1>
+            <h1 className={styles.pageTitle}>
+              {isChatRoute ? 'Chat' : isInsightsRoute ? 'Insights' : isCognitiveSpaceRoute ? 'Cognitive Space' : 'Overview'}
+            </h1>
             <span className={styles.pageBreadcrumb}>
-              {isChatRoute ? 'Dashboard · User Chat' : isInsightsRoute ? 'Dashboard · Insights' : 'Dashboard · Personal Data Platform'}
+              {isChatRoute
+                ? 'Dashboard · User Chat'
+                : isInsightsRoute
+                  ? 'Dashboard · Insights'
+                  : isCognitiveSpaceRoute
+                    ? 'Dashboard · Cognitive Space'
+                    : 'Dashboard · Personal Data Platform'}
             </span>
           </div>
           <div className={styles.topbarRight}>
@@ -430,8 +459,9 @@ export const UserDashboard = () => {
         <div className={styles.content}>
           {isChatRoute ? <UserChatPage /> : null}
           {isInsightsRoute ? <InsightsNewPage /> : null}
+          {isCognitiveSpaceRoute ? <InsightExplorerPage /> : null}
 
-          {!isChatRoute && !isInsightsRoute ? (
+          {!isChatRoute && !isInsightsRoute && !isCognitiveSpaceRoute ? (
             <>
               {/* Welcome banner */}
               <div className={styles.welcomeBanner}>
