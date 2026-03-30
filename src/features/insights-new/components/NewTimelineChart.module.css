@@ -5,6 +5,7 @@
   min-height: 340px;
   animation: cardIn 0.5s ease both;
   border: 1px solid rgba(0, 229, 255, 0.18);
+  overflow: visible;
 }
 
 .header {
@@ -114,8 +115,9 @@
 
 .tooltipRow {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
   font-size: 0.75rem;
 }
 

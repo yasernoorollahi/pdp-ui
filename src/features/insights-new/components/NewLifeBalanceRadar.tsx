@@ -5,10 +5,12 @@ import * as echarts from 'echarts/core';
 import { TooltipComponent, RadarComponent } from 'echarts/components';
 import { RadarChart } from 'echarts/charts';
 import { CanvasRenderer } from 'echarts/renderers';
-import { SIGNAL_COLORS, clamp01, levelLabel } from '../utils/signalUtils';
+import { SIGNAL_COLORS, clamp01 } from '../utils/signalUtils';
 import styles from './NewLifeBalanceRadar.module.css';
 
 echarts.use([TooltipComponent, RadarComponent, RadarChart, CanvasRenderer]);
+
+const RADAR_AXES = ['Work', 'Health', 'Social', 'Discipline', 'Energy'] as const;
 
 type NewLifeBalanceRadarProps = {
   data: TimelinePoint[] | null;
@@ -58,30 +60,29 @@ export const NewLifeBalanceRadar = ({ data, loading, error, onRetry }: NewLifeBa
 
     chart.setOption({
       tooltip: {
+        trigger: 'item',
+        confine: true,
         backgroundColor: 'rgba(6, 12, 16, 0.92)',
-        borderColor: 'rgba(0, 229, 255, 0.25)',
+        borderColor: 'rgba(0, 255, 163, 0.25)',
         borderWidth: 1,
         textStyle: {
           color: '#e8f5f3',
           fontSize: 12,
         },
-        formatter: (params: { value?: number[] }) => {
-          const values = params.value ?? [];
-          const labels = ['Work', 'Health', 'Social', 'Discipline', 'Energy'];
-          const lines = labels
-            .map((label, index) => `${label}: ${levelLabel((values[index] ?? 0) / 100)}`)
-            .join('<br/>');
-          return `${lines}<br/><br/>Balance Score: ${radarValues.balanceScore}%`;
+        formatter: (params: { value?: number | number[] }) => {
+          const values = Array.isArray(params.value) ? params.value : [];
+
+          return [
+            '<div style="font-weight:600;color:#f8fafc;margin-bottom:6px;">Balance profile</div>',
+            ...RADAR_AXES.map(
+              (label, index) =>
+                `${label}: <span style="color:#00FFA3;font-family:JetBrains Mono, SF Mono, monospace;">${values[index] ?? 0}%</span>`,
+            ),
+          ].join('<br/>');
         },
       },
       radar: {
-        indicator: [
-          { name: 'Work', max: 100 },
-          { name: 'Health', max: 100 },
-          { name: 'Social', max: 100 },
-          { name: 'Discipline', max: 100 },
-          { name: 'Energy', max: 100 },
-        ],
+        indicator: RADAR_AXES.map((name) => ({ name, max: 100 })),
         center: ['50%', '54%'],
         radius: '70%',
         splitNumber: 4,

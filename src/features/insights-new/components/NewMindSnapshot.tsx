@@ -114,9 +114,9 @@ export const NewMindSnapshot = ({ data, loading, error, onRetry }: NewMindSnapsh
           layout="horizontal"
           margin={{ top: 10, right: 40, bottom: 10, left: 110 }}
           padding={0.4}
+          valueScale={{ type: 'linear', min: 0, max: 100 }}
           colors={(bar) => String(bar.data.color)}
           borderRadius={8}
-          maxValue={100}
           enableGridX
           enableGridY={false}
           axisBottom={null}

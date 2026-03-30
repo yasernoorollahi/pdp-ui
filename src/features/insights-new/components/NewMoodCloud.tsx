@@ -46,15 +46,23 @@ export const NewMoodCloud = ({ data, loading, error, onRetry }: NewMoodCloudProp
 
     chart.setOption({
       tooltip: {
+        show: true,
+        confine: true,
         backgroundColor: 'rgba(6, 12, 16, 0.92)',
-        borderColor: 'rgba(0, 229, 255, 0.25)',
+        borderColor: 'rgba(91, 140, 255, 0.25)',
         borderWidth: 1,
         textStyle: {
           color: '#e8f5f3',
           fontSize: 12,
         },
-        formatter: (params: { name?: string; value?: number }) =>
-          `${params.name}<br/>Signal density: ${params.value}`,
+        formatter: (params: { name?: string; value?: number }) => {
+          const count = typeof params.value === 'number' ? params.value : 0;
+
+          return [
+            `<div style="font-weight:600;color:#f8fafc;margin-bottom:4px;">${params.name ?? 'Signal word'}</div>`,
+            `<div style="color:rgba(226, 232, 240, 0.82);">Appeared <span style="color:${SIGNAL_COLORS.social};font-family:JetBrains Mono, SF Mono, monospace;">${count}</span> times</div>`,
+          ].join('');
+        },
       },
       series: [
         {
