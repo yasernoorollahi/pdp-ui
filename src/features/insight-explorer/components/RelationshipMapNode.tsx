@@ -1,6 +1,9 @@
 import { memo } from 'react';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
-import type { RelationshipMapNodeKind, RelationshipMapNodeSubtype } from '../types';
+import type {
+  RelationshipMapNodeKind,
+  RelationshipMapNodeSubtype,
+} from '../types';
 
 export type RelationshipMapFlowNodeData = {
   label: string;
@@ -16,54 +19,76 @@ export type RelationshipMapFlowNodeData = {
   isFocused: boolean;
 };
 
-export type RelationshipMapFlowNode = Node<RelationshipMapFlowNodeData, 'relationshipMapNode'>;
+export type RelationshipMapFlowNode = Node<
+  RelationshipMapFlowNodeData,
+  'relationshipMapNode'
+>;
 
 const KIND_STYLES: Record<
   RelationshipMapNodeKind,
   {
     border: string;
+    borderActive: string;
     background: string;
-    badgeBackground: string;
+    badgeBg: string;
     badgeBorder: string;
     badgeText: string;
-    glow: string;
+    glowColor: string;
+    dotColor: string;
+    labelColor: string;
   }
 > = {
   activity: {
-    border: 'rgba(94, 234, 212, 0.42)',
-    background: 'linear-gradient(180deg, rgba(15, 78, 72, 0.88), rgba(7, 23, 28, 0.95))',
-    badgeBackground: 'rgba(45, 212, 191, 0.16)',
-    badgeBorder: 'rgba(94, 234, 212, 0.22)',
-    badgeText: '#d8fffa',
-    glow: 'rgba(45, 212, 191, 0.26)',
+    border: 'rgba(94, 234, 212, 0.22)',
+    borderActive: 'rgba(94, 234, 212, 0.55)',
+    background:
+      'linear-gradient(145deg, rgba(14, 68, 64, 0.9), rgba(6, 20, 24, 0.96))',
+    badgeBg: 'rgba(45, 212, 191, 0.12)',
+    badgeBorder: 'rgba(94, 234, 212, 0.2)',
+    badgeText: '#99f6e4',
+    glowColor: 'rgba(45, 212, 191, 0.22)',
+    dotColor: '#5eead4',
+    labelColor: 'rgba(255,255,255,0.88)',
   },
   entity: {
-    border: 'rgba(125, 211, 252, 0.4)',
-    background: 'linear-gradient(180deg, rgba(18, 56, 92, 0.82), rgba(7, 18, 32, 0.96))',
-    badgeBackground: 'rgba(96, 165, 250, 0.14)',
-    badgeBorder: 'rgba(125, 211, 252, 0.22)',
-    badgeText: '#dbeafe',
-    glow: 'rgba(96, 165, 250, 0.24)',
+    border: 'rgba(125, 211, 252, 0.22)',
+    borderActive: 'rgba(125, 211, 252, 0.52)',
+    background:
+      'linear-gradient(145deg, rgba(16, 52, 88, 0.88), rgba(6, 16, 30, 0.96))',
+    badgeBg: 'rgba(96, 165, 250, 0.12)',
+    badgeBorder: 'rgba(125, 211, 252, 0.2)',
+    badgeText: '#bae6fd',
+    glowColor: 'rgba(96, 165, 250, 0.2)',
+    dotColor: '#93c5fd',
+    labelColor: 'rgba(255,255,255,0.88)',
   },
   state: {
-    border: 'rgba(167, 139, 250, 0.42)',
-    background: 'linear-gradient(180deg, rgba(69, 37, 124, 0.86), rgba(18, 10, 38, 0.95))',
-    badgeBackground: 'rgba(167, 139, 250, 0.14)',
-    badgeBorder: 'rgba(196, 181, 253, 0.22)',
+    border: 'rgba(167, 139, 250, 0.22)',
+    borderActive: 'rgba(167, 139, 250, 0.52)',
+    background:
+      'linear-gradient(145deg, rgba(60, 32, 112, 0.88), rgba(16, 8, 36, 0.96))',
+    badgeBg: 'rgba(167, 139, 250, 0.12)',
+    badgeBorder: 'rgba(196, 181, 253, 0.2)',
     badgeText: '#ede9fe',
-    glow: 'rgba(167, 139, 250, 0.26)',
+    glowColor: 'rgba(167, 139, 250, 0.22)',
+    dotColor: '#c4b5fd',
+    labelColor: 'rgba(255,255,255,0.88)',
   },
   context: {
-    border: 'rgba(251, 191, 36, 0.42)',
-    background: 'linear-gradient(180deg, rgba(108, 60, 10, 0.86), rgba(31, 18, 6, 0.95))',
-    badgeBackground: 'rgba(251, 191, 36, 0.16)',
-    badgeBorder: 'rgba(253, 224, 71, 0.22)',
+    border: 'rgba(251, 191, 36, 0.22)',
+    borderActive: 'rgba(251, 191, 36, 0.52)',
+    background:
+      'linear-gradient(145deg, rgba(96, 54, 8, 0.88), rgba(28, 14, 4, 0.96))',
+    badgeBg: 'rgba(251, 191, 36, 0.12)',
+    badgeBorder: 'rgba(253, 224, 71, 0.2)',
     badgeText: '#fef3c7',
-    glow: 'rgba(251, 191, 36, 0.22)',
+    glowColor: 'rgba(251, 191, 36, 0.18)',
+    dotColor: '#fcd34d',
+    labelColor: 'rgba(255,255,255,0.88)',
   },
 };
 
-const labelForKind = (kind: RelationshipMapNodeKind) => {
+const kindLabel = (kind: RelationshipMapNodeKind) => {
   switch (kind) {
     case 'activity':
       return 'Activity';
@@ -78,68 +103,194 @@ const labelForKind = (kind: RelationshipMapNodeKind) => {
   }
 };
 
-const subtypeLabel = (subtype: RelationshipMapNodeSubtype) => (subtype ? String(subtype).replace(/_/g, ' ') : null);
+const subtypeStr = (subtype: RelationshipMapNodeSubtype) =>
+  subtype ? String(subtype).replace(/_/g, ' ') : null;
 
-const RelationshipMapNodeComponent = ({ data }: NodeProps<RelationshipMapFlowNode>) => {
+const RelationshipMapNodeComponent = ({
+  data,
+}: NodeProps<RelationshipMapFlowNode>) => {
   const tone = KIND_STYLES[data.kind];
-  const opacity = data.isDimmed ? 0.24 : 1;
-  const borderColor = data.isSelected || data.isFocused ? '#ffffff' : tone.border;
+  const isActive = data.isSelected || data.isFocused || data.isHighlighted;
+  const opacity = data.isDimmed ? 0.2 : 1;
+
+  const borderColor =
+    data.isFocused || data.isSelected
+      ? 'rgba(255,255,255,0.55)'
+      : isActive
+        ? tone.borderActive
+        : tone.border;
+
   const boxShadow = data.isFocused
-    ? `0 0 0 1px rgba(255,255,255,0.18), 0 16px 44px ${tone.glow}`
-    : data.isHighlighted
-      ? `0 14px 34px ${tone.glow}`
-      : '0 10px 30px rgba(0, 0, 0, 0.22)';
+    ? `0 0 0 1.5px rgba(255,255,255,0.14), 0 12px 36px ${tone.glowColor}, 0 0 0 4px rgba(255,255,255,0.04)`
+    : data.isSelected
+      ? `0 0 0 1px rgba(255,255,255,0.10), 0 12px 32px ${tone.glowColor}`
+      : data.isHighlighted
+        ? `0 10px 28px ${tone.glowColor}`
+        : `0 6px 20px rgba(0,0,0,0.28)`;
+
+  const transform = data.isSelected
+    ? 'translateY(-2px) scale(1.015)'
+    : data.isFocused
+      ? 'scale(1.02)'
+      : 'scale(1)';
 
   return (
     <>
-      <Handle type="target" position={Position.Left} isConnectable={false} className="!h-3 !w-3 !border-0 !bg-transparent !opacity-0" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        isConnectable={false}
+        style={{
+          width: '10px',
+          height: '10px',
+          border: 'none',
+          background: 'transparent',
+          opacity: 0,
+        }}
+      />
       <div
-        className="rounded-[24px] border px-4 py-3 text-white backdrop-blur-xl transition-all duration-300"
         style={{
           width: `${data.width}px`,
           minHeight: `${data.height}px`,
-          opacity,
-          borderColor,
+          borderRadius: '20px',
+          border: `1px solid ${borderColor}`,
           background: tone.background,
           boxShadow,
-          transform: data.isSelected ? 'translateY(-1px) scale(1.01)' : 'translateY(0px) scale(1)',
+          opacity,
+          transform,
+          padding: '13px 15px',
+          color: 'white',
+          backdropFilter: 'blur(16px)',
+          transition: 'all 0.25s ease',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          gap: '10px',
         }}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-2">
+        {/* Top row */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: '8px',
+          }}
+        >
+          <div>
+            {/* Badge */}
             <span
-              className="inline-flex rounded-full border px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.2em]"
               style={{
-                background: tone.badgeBackground,
-                borderColor: tone.badgeBorder,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                borderRadius: '100px',
+                border: `1px solid ${tone.badgeBorder}`,
+                background: tone.badgeBg,
+                padding: '2px 9px',
+                fontSize: '0.6rem',
+                fontWeight: 600,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
                 color: tone.badgeText,
+                marginBottom: '6px',
               }}
             >
-              {labelForKind(data.kind)}
+              <span
+                style={{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  background: tone.dotColor,
+                  flexShrink: 0,
+                }}
+              />
+              {kindLabel(data.kind)}
             </span>
-            <div>
-              <p className="text-[0.95rem] font-semibold leading-5 text-white">{data.label}</p>
-              {subtypeLabel(data.subtype) ? (
-                <p className="mt-1 text-[0.7rem] uppercase tracking-[0.18em] text-white/58">{subtypeLabel(data.subtype)}</p>
-              ) : null}
-            </div>
+
+            {/* Label */}
+            <p
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                lineHeight: 1.3,
+                color: tone.labelColor,
+              }}
+            >
+              {data.label}
+            </p>
+
+            {/* Subtype */}
+            {subtypeStr(data.subtype) && (
+              <p
+                style={{
+                  marginTop: '3px',
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.32)',
+                }}
+              >
+                {subtypeStr(data.subtype)}
+              </p>
+            )}
           </div>
 
-          <div className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/75">
-            {data.frequency}x
-          </div>
+          {/* Frequency badge */}
+          <span
+            style={{
+              flexShrink: 0,
+              borderRadius: '100px',
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(0,0,0,0.28)',
+              padding: '3px 9px',
+              fontSize: '0.68rem',
+              fontWeight: 500,
+              color: 'rgba(255,255,255,0.55)',
+            }}
+          >
+            {data.frequency}×
+          </span>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-[0.7rem] uppercase tracking-[0.18em] text-white/55">
+        {/* Bottom row */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.65rem',
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.28)',
+            paddingTop: '8px',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
           <span>{data.connectionCount} links</span>
-          {data.isFocused ? <span>Focus</span> : data.isSelected ? <span>Selected</span> : null}
+          {data.isFocused ? (
+            <span style={{ color: tone.badgeText }}>Focused</span>
+          ) : data.isSelected ? (
+            <span style={{ color: 'rgba(255,255,255,0.5)' }}>Selected</span>
+          ) : null}
         </div>
       </div>
-      <Handle type="source" position={Position.Right} isConnectable={false} className="!h-3 !w-3 !border-0 !bg-transparent !opacity-0" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        isConnectable={false}
+        style={{
+          width: '10px',
+          height: '10px',
+          border: 'none',
+          background: 'transparent',
+          opacity: 0,
+        }}
+      />
     </>
   );
 };
 
 RelationshipMapNodeComponent.displayName = 'RelationshipMapNode';
-
 export const RelationshipMapNode = memo(RelationshipMapNodeComponent);

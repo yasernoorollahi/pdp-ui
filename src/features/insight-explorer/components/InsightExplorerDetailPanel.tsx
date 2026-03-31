@@ -16,29 +16,41 @@ type InsightExplorerDetailPanelProps = {
 const COGNITIVE_COPY = {
   CONFIDENCE: {
     title: 'Confidence',
-    tone: 'border-emerald-300/20 bg-emerald-400/10 text-emerald-100',
+    accentColor: 'rgba(52,211,153,0.22)',
+    borderColor: 'rgba(52,211,153,0.18)',
+    dotColor: '#34d399',
+    textColor: 'rgba(167,243,208,0.9)',
   },
   UNCERTAINTY: {
     title: 'Uncertainty',
-    tone: 'border-amber-300/20 bg-amber-400/10 text-amber-100',
+    accentColor: 'rgba(251,191,36,0.14)',
+    borderColor: 'rgba(251,191,36,0.18)',
+    dotColor: '#fbbf24',
+    textColor: 'rgba(253,230,138,0.9)',
   },
 } as const;
 
-const CONTEXT_COPY: Record<ContextGroup, { title: string; tone: string; dot: string }> = {
+const CONTEXT_COPY: Record<
+  ContextGroup,
+  { title: string; accentColor: string; borderColor: string; dotColor: string }
+> = {
   LIKE: {
     title: 'Like',
-    tone: 'border-emerald-300/20 bg-emerald-400/10',
-    dot: 'bg-emerald-300',
+    accentColor: 'rgba(52,211,153,0.10)',
+    borderColor: 'rgba(52,211,153,0.16)',
+    dotColor: '#34d399',
   },
   DISLIKE: {
     title: 'Dislike',
-    tone: 'border-rose-300/20 bg-rose-400/10',
-    dot: 'bg-rose-300',
+    accentColor: 'rgba(248,113,113,0.10)',
+    borderColor: 'rgba(248,113,113,0.18)',
+    dotColor: '#f87171',
   },
   CONSTRAINT: {
     title: 'Constraint',
-    tone: 'border-amber-300/20 bg-amber-400/10',
-    dot: 'bg-amber-300',
+    accentColor: 'rgba(251,191,36,0.10)',
+    borderColor: 'rgba(251,191,36,0.16)',
+    dotColor: '#fbbf24',
   },
 };
 
@@ -49,15 +61,27 @@ const TYPE_COPY: Record<EntityType, string> = {
   PROJECT: 'Projects',
 };
 
-const matchesEntityFilter = (relatedEntityIds: string[], activeEntityId: string | null) => {
+const matchesEntityFilter = (
+  relatedEntityIds: string[],
+  activeEntityId: string | null,
+) => {
   if (!activeEntityId) return true;
   return relatedEntityIds.includes(activeEntityId);
 };
 
-const getRelationItemClass = (item: InsightRelationItemViewModel, activeEntityId: string | null) => {
-  if (!activeEntityId) return 'border-white/10 bg-white/5 text-white';
-  if (matchesEntityFilter(item.relatedEntityIds, activeEntityId)) return 'border-teal-300/35 bg-teal-400/12 text-white';
-  return 'border-white/5 bg-white/[0.03] text-white/45';
+const cardStyle = {
+  borderRadius: '28px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'rgba(6, 14, 20, 0.82)',
+  backdropFilter: 'blur(24px)',
+  boxShadow:
+    '0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
+};
+
+const innerCardStyle = {
+  borderRadius: '18px',
+  border: '1px solid rgba(255,255,255,0.07)',
+  background: 'rgba(255,255,255,0.025)',
 };
 
 const RelationList = ({
@@ -70,31 +94,156 @@ const RelationList = ({
   emptyLabel: string;
 }) => {
   if (items.length === 0) {
-    return <p className="text-sm leading-6 text-slate-400">{emptyLabel}</p>;
+    return (
+      <p
+        style={{
+          fontSize: '0.8rem',
+          lineHeight: 1.6,
+          color: 'rgba(255,255,255,0.28)',
+        }}
+      >
+        {emptyLabel}
+      </p>
+    );
   }
 
-  const visibleItems = activeEntityId ? items.filter((item) => matchesEntityFilter(item.relatedEntityIds, activeEntityId)) : items;
+  const visibleItems = activeEntityId
+    ? items.filter((item) =>
+        matchesEntityFilter(item.relatedEntityIds, activeEntityId),
+      )
+    : items;
 
   if (activeEntityId && visibleItems.length === 0) {
-    return <p className="text-sm leading-6 text-slate-400">No direct links for the active entity inside this section.</p>;
+    return (
+      <p
+        style={{
+          fontSize: '0.8rem',
+          lineHeight: 1.6,
+          color: 'rgba(255,255,255,0.28)',
+        }}
+      >
+        No direct links for the active entity inside this section.
+      </p>
+    );
   }
 
   return (
-    <div className="space-y-2.5">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className={`flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-3 transition-all duration-300 ${getRelationItemClass(item, activeEntityId)}`}
-        >
-          <span className="text-sm">{item.label}</span>
-          <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[0.7rem] text-white/70">
-            {item.frequency}x
-          </span>
-        </div>
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {items.map((item) => {
+        const isMatch =
+          !activeEntityId ||
+          matchesEntityFilter(item.relatedEntityIds, activeEntityId);
+        return (
+          <div
+            key={item.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              borderRadius: '14px',
+              border: `1px solid ${isMatch ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)'}`,
+              background: isMatch
+                ? 'rgba(255,255,255,0.04)'
+                : 'rgba(255,255,255,0.015)',
+              padding: '10px 13px',
+              opacity: isMatch ? 1 : 0.38,
+              transition: 'all 0.25s',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.82rem',
+                color: isMatch
+                  ? 'rgba(255,255,255,0.82)'
+                  : 'rgba(255,255,255,0.3)',
+              }}
+            >
+              {item.label}
+            </span>
+            <span
+              style={{
+                borderRadius: '100px',
+                border: '1px solid rgba(255,255,255,0.07)',
+                background: 'rgba(0,0,0,0.25)',
+                padding: '2px 8px',
+                fontSize: '0.68rem',
+                color: 'rgba(255,255,255,0.38)',
+              }}
+            >
+              {item.frequency}×
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 };
+
+const EntityChip = ({
+  entity,
+  activeEntityId,
+  onSelectEntity,
+  compact = false,
+}: {
+  entity: InsightEntityViewModel;
+  activeEntityId: string | null;
+  onSelectEntity: (id: string) => void;
+  compact?: boolean;
+}) => {
+  const isActive = entity.id === activeEntityId;
+  const isDimmed = activeEntityId && !isActive;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelectEntity(entity.id)}
+      style={{
+        borderRadius: '100px',
+        border: isActive
+          ? '1px solid rgba(94,234,212,0.35)'
+          : '1px solid rgba(255,255,255,0.08)',
+        background: isActive
+          ? 'rgba(45,212,191,0.10)'
+          : 'rgba(255,255,255,0.04)',
+        padding: compact ? '4px 11px' : '5px 13px',
+        fontSize: '0.8rem',
+        color: isActive ? 'white' : 'rgba(255,255,255,0.55)',
+        cursor: 'pointer',
+        opacity: isDimmed ? 0.35 : 1,
+        transition: 'all 0.2s',
+      }}
+    >
+      {entity.label}
+      {!compact && (
+        <span
+          style={{
+            marginLeft: '7px',
+            fontSize: '0.68rem',
+            color: 'rgba(255,255,255,0.3)',
+          }}
+        >
+          {entity.frequency}×
+        </span>
+      )}
+    </button>
+  );
+};
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p
+    style={{
+      fontSize: '0.62rem',
+      fontWeight: 600,
+      letterSpacing: '0.24em',
+      textTransform: 'uppercase',
+      color: 'rgba(255,255,255,0.28)',
+      marginBottom: '8px',
+    }}
+  >
+    {children}
+  </p>
+);
 
 export const InsightExplorerDetailPanel = ({
   activity,
@@ -104,12 +253,51 @@ export const InsightExplorerDetailPanel = ({
 }: InsightExplorerDetailPanelProps) => {
   if (!activity) {
     return (
-      <section className="flex min-h-[34rem] items-center justify-center rounded-[30px] border border-dashed border-white/10 bg-[rgba(5,14,18,0.72)] p-8 text-center shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-xl">
-        <div className="max-w-md space-y-3">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-teal-200/70">Cognitive Space</p>
-          <h3 className="font-serif text-3xl text-white">No activity selected</h3>
-          <p className="text-sm leading-6 text-slate-300">
-            Choose an activity cluster from the left to inspect related cognitive states, context, entities, and topics.
+      <section
+        style={{
+          ...cardStyle,
+          minHeight: '34rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem',
+          textAlign: 'center',
+          borderStyle: 'dashed',
+        }}
+      >
+        <div style={{ maxWidth: '22rem' }}>
+          <p
+            style={{
+              fontSize: '0.62rem',
+              fontWeight: 600,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: 'rgba(94,234,212,0.4)',
+            }}
+          >
+            Cognitive Space
+          </p>
+          <h3
+            style={{
+              marginTop: '1rem',
+              fontFamily: "'Instrument Serif', serif",
+              fontSize: '1.9rem',
+              color: 'white',
+              fontWeight: 400,
+            }}
+          >
+            No activity selected
+          </h3>
+          <p
+            style={{
+              marginTop: '0.75rem',
+              fontSize: '0.82rem',
+              lineHeight: 1.7,
+              color: 'rgba(255,255,255,0.32)',
+            }}
+          >
+            Choose an activity cluster from the left to inspect related
+            cognitive states, context, entities, and topics.
           </p>
         </div>
       </section>
@@ -117,97 +305,199 @@ export const InsightExplorerDetailPanel = ({
   }
 
   const selectedEntity =
-    activity.entities.find((entity) => entity.id === activeEntityId) ??
-    null;
+    activity.entities.find((e) => e.id === activeEntityId) ?? null;
 
   return (
     <section
-      className={`rounded-[30px] border border-white/10 bg-[rgba(5,14,18,0.78)] p-6 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-opacity duration-300 ${
-        isPending ? 'opacity-75' : 'opacity-100'
-      }`}
+      style={{
+        ...cardStyle,
+        padding: '1.5rem',
+        opacity: isPending ? 0.72 : 1,
+        transition: 'opacity 0.25s',
+      }}
     >
-      <div className="flex flex-col gap-4 border-b border-white/8 pb-6 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-3">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-teal-200/70">Cognitive Space</p>
+      {/* ── ACTIVITY HEADER ── */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          paddingBottom: '1.25rem',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          marginBottom: '1.25rem',
+        }}
+      >
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+        >
+          <p
+            style={{
+              fontSize: '0.62rem',
+              fontWeight: 600,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: 'rgba(94,234,212,0.45)',
+            }}
+          >
+            Cognitive Space
+          </p>
+          <h2
+            style={{
+              fontFamily: "'Instrument Serif', serif",
+              fontSize: '2rem',
+              color: 'white',
+              fontWeight: 400,
+              lineHeight: 1.15,
+            }}
+          >
+            {activity.title}
+          </h2>
+          <p
+            style={{
+              fontSize: '0.8rem',
+              lineHeight: 1.65,
+              color: 'rgba(255,255,255,0.35)',
+              maxWidth: '42rem',
+            }}
+          >
+            Neutral reflection view for a single activity cluster. Signals are
+            grouped by co-occurrence, not by what to do next.
+          </p>
+        </div>
+
+        {/* Stat mini-row */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {[
+            { label: 'Frequency', value: `${activity.frequency}×` },
+            { label: 'Entities', value: activity.entities.length },
+            { label: 'Topics', value: activity.topics.length },
+          ].map(({ label, value }) => (
+            <div
+              key={label}
+              style={{
+                ...innerCardStyle,
+                padding: '10px 14px',
+                minWidth: '90px',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.28)',
+                }}
+              >
+                {label}
+              </p>
+              <p
+                style={{
+                  marginTop: '6px',
+                  fontSize: '1.35rem',
+                  fontWeight: 700,
+                  color: 'white',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Variant pills */}
+      {activity.variants.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px',
+            marginBottom: '1.25rem',
+          }}
+        >
+          {activity.variants.map((v) => (
+            <span
+              key={v}
+              style={{
+                borderRadius: '100px',
+                border: '1px solid rgba(255,255,255,0.07)',
+                background: 'rgba(255,255,255,0.03)',
+                padding: '4px 12px',
+                fontSize: '0.75rem',
+                color: 'rgba(255,255,255,0.38)',
+              }}
+            >
+              {v}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* ── ENTITY FILTER PANEL ── */}
+      <div
+        style={{ ...innerCardStyle, padding: '1rem', marginBottom: '1.25rem' }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+            marginBottom: '0.75rem',
+          }}
+        >
           <div>
-            <h2 className="font-serif text-3xl text-white">{activity.title}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              Neutral reflection view for a single activity cluster. Signals are grouped by how they co-occur, not by what to do next.
+            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'white' }}>
+              Entity filters
+            </p>
+            <p
+              style={{
+                marginTop: '2px',
+                fontSize: '0.75rem',
+                color: 'rgba(255,255,255,0.3)',
+              }}
+            >
+              Click to highlight connected relations
             </p>
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-            <p className="text-[0.68rem] uppercase tracking-[0.22em] text-slate-400">Frequency</p>
-            <p className="mt-2 text-xl font-semibold text-white">{activity.frequency}x</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-            <p className="text-[0.68rem] uppercase tracking-[0.22em] text-slate-400">Entities</p>
-            <p className="mt-2 text-xl font-semibold text-white">{activity.entities.length}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-            <p className="text-[0.68rem] uppercase tracking-[0.22em] text-slate-400">Topics</p>
-            <p className="mt-2 text-xl font-semibold text-white">{activity.topics.length}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {activity.variants.map((variant) => (
-          <span key={variant} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300">
-            {variant}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-6 rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-white">Entity filters</p>
-            <p className="mt-1 text-sm text-slate-400">Click a chip to highlight only the relations directly connected to that entity.</p>
-          </div>
-
           {selectedEntity ? (
             <button
               type="button"
               onClick={() => onSelectEntity(selectedEntity.id)}
-              className="rounded-full border border-teal-300/35 bg-teal-400/12 px-3 py-1 text-xs font-medium text-teal-100"
+              style={{
+                borderRadius: '100px',
+                border: '1px solid rgba(94,234,212,0.3)',
+                background: 'rgba(45,212,191,0.08)',
+                padding: '4px 12px',
+                fontSize: '0.72rem',
+                fontWeight: 500,
+                color: 'rgba(94,234,212,0.9)',
+                cursor: 'pointer',
+              }}
             >
-              Filtering by {selectedEntity.label} · clear
+              {selectedEntity.label} · clear
             </button>
           ) : null}
         </div>
 
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {Object.entries(activity.entitiesByType).map(([type, entities]) => {
             if (entities.length === 0) return null;
-
             return (
               <div key={type}>
-                <p className="mb-2 text-[0.68rem] uppercase tracking-[0.22em] text-slate-400">{TYPE_COPY[type as EntityType]}</p>
-                <div className="flex flex-wrap gap-2">
-                  {entities.map((entity: InsightEntityViewModel) => {
-                    const isActive = entity.id === activeEntityId;
-
-                    return (
-                      <button
-                        key={entity.id}
-                        type="button"
-                        onClick={() => onSelectEntity(entity.id)}
-                        className={`rounded-full border px-3 py-1.5 text-sm transition-all duration-300 ${
-                          isActive
-                            ? 'border-teal-300/60 bg-teal-400/15 text-white'
-                            : activeEntityId
-                              ? 'border-white/7 bg-white/[0.03] text-white/55 hover:text-white'
-                              : 'border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/[0.08]'
-                        }`}
-                      >
-                        {entity.label}
-                        <span className="ml-2 text-xs text-white/60">{entity.frequency}x</span>
-                      </button>
-                    );
-                  })}
+                <SectionLabel>{TYPE_COPY[type as EntityType]}</SectionLabel>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {entities.map((entity: InsightEntityViewModel) => (
+                    <EntityChip
+                      key={entity.id}
+                      entity={entity}
+                      activeEntityId={activeEntityId}
+                      onSelectEntity={onSelectEntity}
+                    />
+                  ))}
                 </div>
               </div>
             );
@@ -215,80 +505,187 @@ export const InsightExplorerDetailPanel = ({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
-        {(['CONFIDENCE', 'UNCERTAINTY'] as const).map((group) => (
-          <section
-            key={group}
-            className={`rounded-[24px] border p-5 ${COGNITIVE_COPY[group].tone}`}
+      {/* ── COGNITIVE STATES ── */}
+      <div
+        style={{
+          display: 'grid',
+          gap: '10px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          marginBottom: '1.25rem',
+        }}
+      >
+        {(['CONFIDENCE', 'UNCERTAINTY'] as const).map((group) => {
+          const tone = COGNITIVE_COPY[group];
+          return (
+            <section
+              key={group}
+              style={{
+                borderRadius: '20px',
+                border: `1px solid ${tone.borderColor}`,
+                background: tone.accentColor,
+                padding: '1.1rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: tone.dotColor,
+                    flexShrink: 0,
+                  }}
+                />
+                <h3
+                  style={{
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    color: tone.textColor,
+                  }}
+                >
+                  {tone.title}
+                </h3>
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    fontSize: '0.65rem',
+                    color: 'rgba(255,255,255,0.3)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {activity.cognitiveStates[group].length}
+                </span>
+              </div>
+              <RelationList
+                items={activity.cognitiveStates[group]}
+                activeEntityId={activeEntityId}
+                emptyLabel="No states in this bucket yet."
+              />
+            </section>
+          );
+        })}
+      </div>
+
+      {/* ── CONTEXT GROUPS ── */}
+      <div
+        style={{
+          display: 'grid',
+          gap: '10px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          marginBottom: '1.25rem',
+        }}
+      >
+        {(['LIKE', 'DISLIKE', 'CONSTRAINT'] as const).map((group) => {
+          const tone = CONTEXT_COPY[group];
+          return (
+            <section
+              key={group}
+              style={{
+                borderRadius: '20px',
+                border: `1px solid ${tone.borderColor}`,
+                background: tone.accentColor,
+                padding: '1.1rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: tone.dotColor,
+                    flexShrink: 0,
+                  }}
+                />
+                <h3
+                  style={{
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    color: 'white',
+                  }}
+                >
+                  {tone.title}
+                </h3>
+              </div>
+              <RelationList
+                items={activity.context[group]}
+                activeEntityId={activeEntityId}
+                emptyLabel="No entries yet."
+              />
+            </section>
+          );
+        })}
+      </div>
+
+      {/* ── ENTITIES + TOPICS ── */}
+      <div
+        style={{
+          display: 'grid',
+          gap: '10px',
+          gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)',
+        }}
+      >
+        {/* Related entities */}
+        <section style={{ ...innerCardStyle, padding: '1.1rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1rem',
+            }}
           >
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h3 className="text-lg font-semibold text-white">{COGNITIVE_COPY[group].title}</h3>
-              <span className="text-xs uppercase tracking-[0.18em] text-white/60">
-                {activity.cognitiveStates[group].length} states
-              </span>
-            </div>
-
-            <RelationList
-              items={activity.cognitiveStates[group]}
-              activeEntityId={activeEntityId}
-              emptyLabel="No states captured in this bucket yet."
-            />
-          </section>
-        ))}
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        {(['LIKE', 'DISLIKE', 'CONSTRAINT'] as const).map((group) => (
-          <section key={group} className={`rounded-[24px] border p-5 ${CONTEXT_COPY[group].tone}`}>
-            <div className="mb-4 flex items-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full ${CONTEXT_COPY[group].dot}`} />
-              <h3 className="text-lg font-semibold text-white">{CONTEXT_COPY[group].title}</h3>
-            </div>
-
-            <RelationList
-              items={activity.context[group]}
-              activeEntityId={activeEntityId}
-              emptyLabel="No entries in this context bucket yet."
-            />
-          </section>
-        ))}
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <section className="rounded-[24px] border border-white/8 bg-white/[0.03] p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-white">Related entities</h3>
-            <span className="text-xs uppercase tracking-[0.18em] text-slate-400">{activity.entities.length} total</span>
+            <h3
+              style={{ fontSize: '0.88rem', fontWeight: 600, color: 'white' }}
+            >
+              Related entities
+            </h3>
+            <span
+              style={{
+                fontSize: '0.65rem',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.28)',
+              }}
+            >
+              {activity.entities.length} total
+            </span>
           </div>
-
-          <div className="space-y-4">
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+          >
             {Object.entries(activity.entitiesByType).map(([type, entities]) => {
               if (entities.length === 0) return null;
-
               return (
                 <div key={type}>
-                  <p className="mb-2 text-[0.68rem] uppercase tracking-[0.22em] text-slate-400">{TYPE_COPY[type as EntityType]}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {entities.map((entity: InsightEntityViewModel) => {
-                      const isActive = entity.id === activeEntityId;
-
-                      return (
-                        <button
-                          key={entity.id}
-                          type="button"
-                          onClick={() => onSelectEntity(entity.id)}
-                          className={`rounded-full border px-3 py-1.5 text-sm transition-all duration-300 ${
-                            isActive
-                              ? 'border-teal-300/60 bg-teal-400/15 text-white'
-                              : activeEntityId
-                                ? 'border-white/7 bg-white/[0.03] text-white/50'
-                                : 'border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/[0.08]'
-                          }`}
-                        >
-                          {entity.label}
-                        </button>
-                      );
-                    })}
+                  <SectionLabel>{TYPE_COPY[type as EntityType]}</SectionLabel>
+                  <div
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}
+                  >
+                    {entities.map((entity: InsightEntityViewModel) => (
+                      <EntityChip
+                        key={entity.id}
+                        entity={entity}
+                        activeEntityId={activeEntityId}
+                        onSelectEntity={onSelectEntity}
+                        compact
+                      />
+                    ))}
                   </div>
                 </div>
               );
@@ -296,29 +693,65 @@ export const InsightExplorerDetailPanel = ({
           </div>
         </section>
 
-        <section className="rounded-[24px] border border-white/8 bg-white/[0.03] p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-white">Related topics</h3>
-            <span className="text-xs uppercase tracking-[0.18em] text-slate-400">{activity.topics.length} tags</span>
+        {/* Topics */}
+        <section style={{ ...innerCardStyle, padding: '1.1rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1rem',
+            }}
+          >
+            <h3
+              style={{ fontSize: '0.88rem', fontWeight: 600, color: 'white' }}
+            >
+              Topics
+            </h3>
+            <span
+              style={{
+                fontSize: '0.65rem',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.28)',
+              }}
+            >
+              {activity.topics.length}
+            </span>
           </div>
 
           {activity.topics.length === 0 ? (
-            <p className="text-sm leading-6 text-slate-400">No topics linked to this activity cluster yet.</p>
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.28)' }}>
+              No topics linked yet.
+            </p>
           ) : (
-            <div className="flex flex-wrap gap-2.5">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {activity.topics.map((topic) => {
-                const isMatch = matchesEntityFilter(topic.relatedEntityIds, activeEntityId);
-
+                const isMatch = matchesEntityFilter(
+                  topic.relatedEntityIds,
+                  activeEntityId,
+                );
                 return (
                   <span
                     key={topic.id}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition-all duration-300 ${
-                      !activeEntityId
-                        ? 'border-white/10 bg-white/5 text-slate-200'
+                    style={{
+                      borderRadius: '100px',
+                      border: `1px solid ${!activeEntityId ? 'rgba(255,255,255,0.08)' : isMatch ? 'rgba(94,234,212,0.25)' : 'rgba(255,255,255,0.04)'}`,
+                      background: !activeEntityId
+                        ? 'rgba(255,255,255,0.04)'
                         : isMatch
-                          ? 'border-teal-300/40 bg-teal-400/12 text-white'
-                          : 'border-white/6 bg-white/[0.03] text-white/45'
-                    }`}
+                          ? 'rgba(45,212,191,0.07)'
+                          : 'rgba(255,255,255,0.015)',
+                      padding: '5px 12px',
+                      fontSize: '0.78rem',
+                      color: !activeEntityId
+                        ? 'rgba(255,255,255,0.55)'
+                        : isMatch
+                          ? 'rgba(255,255,255,0.85)'
+                          : 'rgba(255,255,255,0.22)',
+                      opacity: !activeEntityId || isMatch ? 1 : 0.4,
+                      transition: 'all 0.25s',
+                    }}
                   >
                     {topic.label}
                   </span>
