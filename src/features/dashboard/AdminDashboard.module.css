@@ -24,17 +24,20 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.9rem 1.3rem;
-  border-radius: 14px;
-  background: var(--color-red-07);
-  border: 1px solid var(--color-red-20);
+  padding: 1rem 1.35rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(66, 28, 28, 0.3), rgba(39, 26, 26, 0.18)),
+    var(--surface-panel-bg-soft);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  box-shadow: var(--surface-card-shadow);
   animation: fadeInUp 0.5s ease both;
 }
 
 .alertIcon {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--color-red-12);
   border: 1px solid var(--color-red-20);
   display: flex;
@@ -81,7 +84,7 @@
 }
 
 .panelTitle {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text-primary);
@@ -112,16 +115,17 @@
   grid-template-columns: 1fr auto auto;
   gap: 1rem;
   align-items: center;
-  padding: 0.65rem 0.75rem;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid var(--color-border-faint);
-  transition: background 0.2s;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .userRow:hover {
-  background: var(--color-teal-10);
-  border-color: var(--color-teal-10);
+  background: var(--surface-panel-bg);
+  border-color: var(--surface-panel-border-strong);
+  transform: translateY(-1px);
 }
 
 .userRowInfo {
@@ -169,16 +173,17 @@
   display: flex;
   align-items: flex-start;
   gap: 0.85rem;
-  padding: 0.7rem 0.75rem;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid var(--color-border-faint);
-  transition: background 0.2s;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .auditItem:hover {
-  background: var(--color-teal-10);
-  border-color: var(--color-teal-10);
+  background: var(--surface-panel-bg);
+  border-color: var(--surface-panel-border-strong);
+  transform: translateY(-1px);
 }
 
 .auditIconWrap {

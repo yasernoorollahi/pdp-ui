@@ -29,9 +29,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 50% 45% at 90% 5%,  rgba(13, 148, 136, 0.35) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 5%  90%,  rgba(45, 212, 191, 0.15) 0%, transparent 55%),
-    radial-gradient(ellipse 30% 35% at 55% 50%,  rgba(52, 211, 153, 0.06) 0%, transparent 65%);
+    radial-gradient(ellipse 56% 48% at 88% 4%, rgba(13, 148, 136, 0.42) 0%, transparent 62%),
+    radial-gradient(ellipse 46% 42% at 4% 92%, rgba(45, 212, 191, 0.22) 0%, transparent 58%),
+    radial-gradient(ellipse 36% 34% at 52% 48%, rgba(52, 211, 153, 0.1) 0%, transparent 68%);
 }
 
 .dashboardBg::after {
@@ -54,16 +54,17 @@
   z-index: 50;
   display: flex;
   flex-direction: column;
-  background: rgba(6, 12, 16, 0.7);
+  background: var(--color-glass-panel);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid var(--border-glass);
   padding: 1.8rem 0;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
   animation: slideInLeft 0.5s ease both;
 }
 
 .sidebarLogo {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--teal);
@@ -100,15 +101,15 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.9rem;
-  border-radius: 10px;
+  padding: 0.72rem 0.95rem;
+  border-radius: 14px;
   font-size: 0.875rem;
   font-weight: 400;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid transparent;
-  background: none;
+  background: rgba(255,255,255,0.02);
   width: 100%;
   text-align: left;
   letter-spacing: 0.02em;
@@ -116,18 +117,20 @@
 
 .navItem:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-panel-bg-soft);
+  border-color: var(--surface-panel-border);
 }
 
 .navItemActive {
   color: var(--teal);
-  background: rgba(45, 212, 191, 0.08);
-  border-color: rgba(45, 212, 191, 0.15);
+  background: var(--surface-panel-bg-soft);
+  border-color: var(--surface-panel-border);
   font-weight: 500;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .navItemActive:hover {
-  background: rgba(45, 212, 191, 0.12);
+  background: var(--surface-panel-bg-soft);
 }
 
 .navIcon {
@@ -167,10 +170,11 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0.9rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
   margin-bottom: 0.5rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .userAvatar {
@@ -254,10 +258,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background: rgba(6, 12, 16, 0.6);
+  background: var(--color-glass-overlay);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-glass);
+  box-shadow: 0 18px 40px rgba(6, 24, 24, 0.14);
   animation: fadeInDown 0.5s ease both;
 }
 
@@ -268,11 +273,11 @@
 }
 
 .pageTitle {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
 }
 
 .pageBreadcrumb {
@@ -290,9 +295,9 @@
 .topbarBtn {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,8 +307,8 @@
 }
 
 .topbarBtn:hover {
-  background: rgba(45, 212, 191, 0.08);
-  border-color: rgba(45, 212, 191, 0.2);
+  background: var(--surface-panel-bg);
+  border-color: rgba(45, 212, 191, 0.18);
   color: var(--teal);
 }
 
@@ -326,42 +331,72 @@
 /* ---- Content area ---- */
 .content {
   flex: 1;
-  padding: 2rem;
+  padding: 1.9rem 2rem 2.1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--surface-page-gap);
+  position: relative;
+  isolation: isolate;
+}
+
+.content::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 420px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(45, 212, 191, 0.2), transparent 42%),
+    radial-gradient(circle at 76% 16%, rgba(52, 211, 153, 0.18), transparent 40%),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 36%);
+  filter: blur(42px);
+  opacity: 0.92;
+  pointer-events: none;
+  z-index: -2;
+}
+
+.content::after {
+  content: '';
+  position: absolute;
+  inset: 120px 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* ---- Welcome banner ---- */
 .welcomeBanner {
   position: relative;
-  border-radius: 20px;
-  padding: 2rem 2.5rem;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(45, 212, 191, 0.06) 100%);
-  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: var(--surface-hero-radius);
+  padding: 2rem 2.2rem;
+  background: var(--surface-hero-bg);
+  border: 1px solid var(--surface-panel-border-strong);
   overflow: hidden;
+  box-shadow: var(--surface-panel-shadow);
   animation: fadeInUp 0.6s 0.1s ease both;
 }
 
 .welcomeBanner::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(45, 212, 191, 0.5), transparent);
+  inset: 0;
+  background: var(--surface-grid-overlay);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.85), transparent 75%);
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .welcomeBannerGlow {
   position: absolute;
   right: -40px;
   top: -40px;
-  width: 200px;
-  height: 200px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(45, 212, 191, 0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.22), rgba(52, 211, 153, 0.1) 35%, transparent 72%);
+  filter: blur(10px);
   pointer-events: none;
 }
 
@@ -375,7 +410,7 @@
 }
 
 .welcomeTitle {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: clamp(1.4rem, 2.5vw, 1.9rem);
   font-weight: 700;
   color: var(--text-primary);
@@ -423,14 +458,16 @@
 }
 
 .statCard {
-  border-radius: 16px;
-  padding: 1.4rem 1.5rem;
+  border-radius: var(--surface-card-radius);
+  padding: 0.95rem 1rem;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: default;
+  border: 1px solid var(--surface-panel-border);
+  box-shadow: var(--surface-card-shadow);
 }
 
 .statCard:hover {
@@ -438,27 +475,29 @@
 }
 
 .statCardTeal {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(13,148,136,0.08), rgba(45,212,191,0.1));
-  border: 1px solid rgba(45, 212, 191, 0.18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(45,212,191,0.18) 0%, transparent 34%),
+    var(--surface-panel-bg);
 }
 
 .statCardEmerald {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(52,211,153,0.07), rgba(16,185,129,0.1));
-  border: 1px solid rgba(52, 211, 153, 0.18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(52,211,153,0.16) 0%, transparent 34%),
+    var(--surface-panel-bg);
 }
 
 .statCardGold {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(245,158,11,0.07), rgba(245,158,11,0.1));
-  border: 1px solid rgba(245, 158, 11, 0.18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(245,158,11,0.14) 0%, transparent 34%),
+    var(--surface-panel-bg);
+  border-color: rgba(245, 158, 11, 0.16);
 }
 
 .statCardBlue {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(59,130,246,0.07), rgba(59,130,246,0.1));
-  border: 1px solid rgba(59, 130, 246, 0.18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(59,130,246,0.14) 0%, transparent 34%),
+    var(--surface-panel-bg);
+  border-color: rgba(59, 130, 246, 0.16);
 }
 
 .statCardGlow {
@@ -479,13 +518,13 @@
 .statIcon {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  margin-bottom: 1rem;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 0.8rem;
 }
 
 .statCardTeal .statIcon   { color: var(--teal); }
@@ -494,8 +533,8 @@
 .statCardBlue .statIcon    { color: #60a5fa; }
 
 .statValue {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.8rem;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
@@ -503,10 +542,11 @@
 }
 
 .statLabel {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  letter-spacing: 0.04em;
-  font-weight: 300;
+  letter-spacing: 0.18em;
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
 .statChange {
@@ -531,14 +571,15 @@
 
 /* ---- Panel (reusable glass card) ---- */
 .panel {
-  border-radius: 18px;
-  padding: 1.5rem;
-  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(13,148,136,0.05));
-  border: 1px solid var(--border-glass);
+  border-radius: var(--surface-card-radius);
+  padding: 1.35rem;
+  background: var(--surface-panel-bg);
+  border: 1px solid var(--surface-panel-border);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--surface-card-shadow);
 }
 
 .panel::before {
@@ -547,9 +588,9 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 40%;
+  width: 48%;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(45,212,191,0.35), transparent);
+  background: linear-gradient(to right, transparent, rgba(45,212,191,0.42), transparent);
 }
 
 .panelHeader {
@@ -560,7 +601,7 @@
 }
 
 .panelTitle {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -593,15 +634,16 @@
   align-items: flex-start;
   gap: 0.9rem;
   padding: 0.75rem;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--surface-inline-radius);
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
   transition: background 0.2s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .activityItem:hover {
-  background: rgba(45,212,191,0.04);
-  border-color: rgba(45,212,191,0.1);
+  background: var(--surface-panel-bg);
+  border-color: rgba(45,212,191,0.18);
 }
 
 .activityDot {
@@ -642,10 +684,11 @@
   text-align: center;
   gap: 0.4rem;
   padding: 1.5rem 1rem;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid var(--border-subtle);
+  border-radius: var(--surface-inline-radius);
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
   margin-bottom: 1.2rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .profileAvatar {
@@ -656,7 +699,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 700;
   color: #060c10;
@@ -665,7 +708,7 @@
 }
 
 .profileName {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -705,13 +748,14 @@
   align-items: center;
   gap: 0.2rem;
   padding: 0.75rem;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .profileStatValue {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--teal);

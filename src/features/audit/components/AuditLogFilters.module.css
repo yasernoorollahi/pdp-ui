@@ -15,12 +15,12 @@
 .title {
   margin: 0;
   font-size: 1.2rem;
-  color: #f8fafc;
+  color: var(--color-text-white);
 }
 
 .subtitle {
   margin: 0.35rem 0 0;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 

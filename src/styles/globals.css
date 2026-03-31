@@ -1,14 +1,19 @@
 /* ============================================
    GLOBALS — Reset & base styles
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import './variables.css';
 @import './theme.css';
 
+:root {
+  --font-ui: 'Inter', 'SF Pro Text', sans-serif;
+  --font-display: 'Inter', 'SF Pro Text', sans-serif;
+}
+
 @theme {
-  --font-sans: "DM Sans", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", "SF Pro Text", sans-serif;
+  --font-serif: "Inter", "SF Pro Text", sans-serif;
 }
 
 *,
@@ -34,5 +39,13 @@ body {
   background: var(--color-bg-gradient);
   background-attachment: fixed;
   color: var(--color-text-primary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-ui);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  font-family: var(--font-ui);
 }

@@ -26,14 +26,14 @@
 
 .sectionTitle {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-text-white);
   font-size: 1.05rem;
   font-weight: 700;
 }
 
 .sectionText {
   margin: 0;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.84rem;
 }
 
@@ -57,15 +57,15 @@
   gap: 1rem;
   align-items: center;
   padding: 1rem 1.1rem;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 18px;
+  border: 1px solid var(--surface-panel-border);
+  background: var(--surface-panel-bg-soft);
 }
 
 .rowEmbedded {
   padding: 0.85rem 0.95rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  border-radius: 16px;
+  background: var(--surface-panel-bg-inline);
 }
 
 .rowMuted {
@@ -90,7 +90,7 @@
 
 .jobName {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--color-text-primary);
   font-size: 0.95rem;
   font-weight: 700;
   word-break: break-word;
@@ -98,7 +98,7 @@
 
 .jobDescription {
   margin: 0;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -126,7 +126,7 @@
 .resetBtn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;
@@ -134,7 +134,7 @@
 }
 
 .resetBtn:hover:not(:disabled) {
-  color: #e2e8f0;
+  color: var(--color-text-primary);
 }
 
 .resetBtn:disabled {
@@ -145,10 +145,10 @@
 .empty {
   padding: 2rem 1rem;
   text-align: center;
-  color: #64748b;
-  border: 1px dashed rgba(148, 163, 184, 0.2);
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.35);
+  color: var(--color-text-muted);
+  border: 1px dashed var(--surface-panel-border);
+  border-radius: 18px;
+  background: var(--surface-panel-bg-soft);
 }
 
 @media (max-width: 900px) {
