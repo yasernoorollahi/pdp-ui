@@ -271,16 +271,51 @@ export const InsightExplorerPage = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+        .ie-root {
+          position: relative;
+          isolation: isolate;
+          font-family: var(--font-ui);
+          color: white;
+          padding: 0.55rem 0.7rem 0.2rem;
+        }
 
-        .ie-root { font-family: 'DM Sans', sans-serif; color: white; }
+        .ie-root::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 34px;
+          background:
+            radial-gradient(circle at 12% 10%, rgba(45,212,191,0.14) 0%, transparent 28%),
+            radial-gradient(circle at 88% 8%, rgba(52,211,153,0.12) 0%, transparent 26%),
+            linear-gradient(180deg, rgba(255,255,255,0.025), rgba(45,212,191,0.03));
+          border: 1px solid rgba(45,212,191,0.08);
+          pointer-events: none;
+          z-index: -1;
+        }
 
         .ie-card {
           border-radius: 28px;
           border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(6, 14, 20, 0.82);
+          background: linear-gradient(180deg, rgba(18, 38, 36, 0.74), rgba(12, 26, 28, 0.62));
           backdrop-filter: blur(24px);
           box-shadow: 0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .ie-hero-card {
+          padding: 3.35rem 3.65rem 1.55rem;
+        }
+
+        .ie-hero-stack {
+          gap: 2.65rem;
+        }
+
+        .ie-hero-top {
+          padding-top: 0.4rem;
+        }
+
+        .ie-hero-bottom {
+          padding-top: 0.75rem;
+          padding-bottom: 0.1rem;
         }
 
         .ie-stat-card {
@@ -303,8 +338,9 @@ export const InsightExplorerPage = () => {
         }
 
         .font-display {
-          font-family: 'Instrument Serif', serif;
-          font-weight: 400;
+          font-family: var(--font-display);
+          font-weight: 700;
+          letter-spacing: -0.03em;
         }
 
         .ie-tab {
@@ -333,14 +369,43 @@ export const InsightExplorerPage = () => {
           mask-image: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 75%);
           -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 75%);
         }
+
+        @media (max-width: 768px) {
+          .ie-root {
+            padding: 0.45rem 0.45rem 0.1rem;
+          }
+
+          .ie-hero-card {
+            padding: 2rem 1.5rem 1.1rem;
+          }
+
+          .ie-hero-stack {
+            gap: 2rem;
+          }
+
+          .ie-hero-top {
+            padding-top: 0.15rem;
+          }
+
+          .ie-hero-bottom {
+            padding-top: 0.55rem;
+            padding-bottom: 0;
+          }
+        }
+
+        @media (min-width: 769px) and (max-width: 1279px) {
+          .ie-hero-card {
+            padding: 2.75rem 2.5rem 1.35rem;
+          }
+        }
       `}</style>
 
-      <div className="ie-root space-y-5">
+      <div className="ie-root space-y-0">
 
         {/* ── HERO HEADER ── */}
         {activeTab !== 'orbital-space' ? (
           <section
-            className="ie-card relative overflow-hidden p-7 lg:p-9"
+            className="ie-card ie-hero-card relative overflow-hidden"
             style={{ boxShadow: `0 24px 80px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06)` }}
           >
             {/* Gradient mesh */}
@@ -354,11 +419,11 @@ export const InsightExplorerPage = () => {
             <div className={`pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full ${theme.orb1} blur-3xl`} />
             <div className={`pointer-events-none absolute bottom-0 right-24 h-40 w-40 rounded-full ${theme.orb2} blur-3xl`} />
 
-            <div className="relative flex flex-col gap-8">
+            <div className="ie-hero-stack relative flex flex-col">
               {/* Top row */}
-              <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
+              <div className="ie-hero-top flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
                 {/* Title block */}
-                <div className="space-y-4 max-w-2xl">
+                <div className="max-w-2xl space-y-4">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <span className="ie-overline" style={{ color: 'rgba(255,255,255,0.28)' }}>
                       Observability for the human mind
@@ -408,7 +473,7 @@ export const InsightExplorerPage = () => {
               </div>
 
               {/* Bottom row: meta pills + tabs */}
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="ie-hero-bottom flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex flex-wrap items-center gap-2">
                   <MetaPill>Endpoint: {response?.endpoint}</MetaPill>
                   <MetaPill>{viewModel.summary.entityCount} linked entities</MetaPill>
@@ -504,7 +569,7 @@ export const InsightExplorerPage = () => {
 
         {/* ── CONTENT AREA ── */}
         {viewModel.activityGroups.length === 0 ? (
-          <section className="ie-card p-14 text-center">
+          <section className="ie-card mt-8 p-14 text-center lg:mt-10">
             <p className="ie-overline" style={{ color: 'rgba(94,234,212,0.5)' }}>Cognitive Space</p>
             <h3 className="mt-4 font-display text-3xl text-white">No observations available yet</h3>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/38">
@@ -512,7 +577,7 @@ export const InsightExplorerPage = () => {
             </p>
           </section>
         ) : activeTab === 'structured-view' ? (
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+          <div className="mt-8 grid gap-5 lg:mt-10 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
             <InsightExplorerActivityList
               activities={viewModel.activityGroups}
               activeActivityId={selectedActivity?.id ?? null}
@@ -527,15 +592,19 @@ export const InsightExplorerPage = () => {
             />
           </div>
         ) : activeTab === 'relationship-map' ? (
-          <Suspense fallback={<RelationshipMapLoadingState />}>
-            <RelationshipMapView graph={relationshipMap} />
-          </Suspense>
+          <div className="mt-8 lg:mt-10">
+            <Suspense fallback={<RelationshipMapLoadingState />}>
+              <RelationshipMapView graph={relationshipMap} viewModel={viewModel} />
+            </Suspense>
+          </div>
         ) : webglReady ? (
-          <Suspense fallback={<CognitiveSpace3DLoadingState />}>
-            <CognitiveSpace3DView model={cognitiveSpace3D} />
-          </Suspense>
+          <div className="mt-8 lg:mt-10">
+            <Suspense fallback={<CognitiveSpace3DLoadingState />}>
+              <CognitiveSpace3DView model={cognitiveSpace3D} />
+            </Suspense>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="mt-8 space-y-4 lg:mt-10">
             <section className="ie-card border-amber-400/15 bg-amber-400/5 p-5 text-amber-200/70">
               <p className="ie-overline" style={{ color: 'rgba(251,191,36,0.45)' }}>3D Fallback</p>
               <p className="mt-2 text-sm leading-6">
@@ -543,7 +612,7 @@ export const InsightExplorerPage = () => {
               </p>
             </section>
             <Suspense fallback={<RelationshipMapLoadingState />}>
-              <RelationshipMapView graph={relationshipMap} />
+              <RelationshipMapView graph={relationshipMap} viewModel={viewModel} />
             </Suspense>
           </div>
         )}

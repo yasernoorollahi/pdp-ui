@@ -9,6 +9,10 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 1.35rem;
+  border-radius: 18px;
+  background: var(--surface-panel-bg);
+  border: 1px solid var(--surface-panel-border);
+  box-shadow: var(--surface-card-shadow);
 }
 
 .iconWrap {
@@ -46,12 +50,12 @@
   font-size: 1.5rem;
   font-weight: 800;
   line-height: 1;
-  color: #f8fafc;
+  color: var(--color-text-white);
 }
 
 .label {
   margin: 0.2rem 0 0;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.76rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;

@@ -12,14 +12,14 @@
 
 .title {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-text-white);
   font-size: 1.05rem;
   font-weight: 700;
 }
 
 .copy {
   margin: 0.25rem 0 0;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.84rem;
 }
 
@@ -31,9 +31,9 @@
 
 .summaryCard {
   padding: 0.9rem 1rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
 }
 
 .summaryLabel {
@@ -41,14 +41,14 @@
   font-size: 0.73rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .summaryValue {
   margin: 0.35rem 0 0;
   font-size: 1.35rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--color-text-white);
 }
 
 .runs {
@@ -60,9 +60,9 @@
 .run {
   position: relative;
   padding: 1rem 1.1rem;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid var(--surface-panel-border);
   transition: border-color 0.35s ease, background-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
 }
 
@@ -89,7 +89,7 @@
 
 .runName {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--color-text-primary);
   font-size: 0.93rem;
   font-weight: 700;
 }
@@ -130,7 +130,7 @@
 
 .runInfo {
   margin: 0.75rem 0 0;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.83rem;
   line-height: 1.6;
 }
@@ -148,10 +148,10 @@
 .empty {
   padding: 2rem 1rem;
   text-align: center;
-  color: #64748b;
-  border: 1px dashed rgba(148, 163, 184, 0.2);
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.35);
+  color: var(--color-text-muted);
+  border: 1px dashed var(--surface-panel-border);
+  border-radius: 18px;
+  background: var(--surface-panel-bg-soft);
 }
 
 @keyframes recentRunPulse {

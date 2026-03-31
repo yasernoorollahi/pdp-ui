@@ -1,12 +1,13 @@
 .card {
-  border-radius: 16px;
-  padding: 1.4rem 1.5rem;
+  border-radius: var(--surface-card-radius);
+  padding: 0.95rem 1rem;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: default;
+  box-shadow: var(--surface-card-shadow);
 }
 
 .card:hover {
@@ -14,24 +15,28 @@
 }
 
 .teal {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(13,148,136,0.08), rgba(45,212,191,0.1));
-  border: 1px solid var(--color-teal-18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(45,212,191,0.18) 0%, transparent 34%),
+    var(--surface-panel-bg);
+  border: 1px solid var(--surface-panel-border);
 }
 .red {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), var(--color-red-07), rgba(220,38,38,0.1));
-  border: 1px solid var(--color-red-20);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(239,68,68,0.14) 0%, transparent 34%),
+    var(--surface-panel-bg);
+  border: 1px solid rgba(239,68,68,0.16);
 }
 .gold {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), var(--color-gold-10), var(--color-gold-10));
-  border: 1px solid var(--color-gold-18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(245,158,11,0.14) 0%, transparent 34%),
+    var(--surface-panel-bg);
+  border: 1px solid rgba(245,158,11,0.16);
 }
 .emerald {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), var(--color-emerald-10), rgba(16,185,129,0.1));
-  border: 1px solid var(--color-emerald-18);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(52,211,153,0.16) 0%, transparent 34%),
+    var(--surface-panel-bg);
+  border: 1px solid rgba(52,211,153,0.16);
 }
 
 .glow {
@@ -51,13 +56,13 @@
 .icon {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  margin-bottom: 1rem;
+  background: var(--surface-panel-bg-soft);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 0.8rem;
 }
 .teal .icon   { color: var(--color-teal); }
 .red .icon    { color: var(--color-red-light); }
@@ -65,25 +70,26 @@
 .emerald .icon { color: var(--color-emerald); }
 
 .value {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.8rem;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--color-text-primary);
   line-height: 1;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
 
 .label {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--color-text-muted);
-  letter-spacing: 0.04em;
-  font-weight: 300;
+  letter-spacing: 0.18em;
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
 .change {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 500;
-  margin-top: 0.5rem;
+  margin-top: 0.55rem;
   display: flex;
   align-items: center;
   gap: 0.2rem;

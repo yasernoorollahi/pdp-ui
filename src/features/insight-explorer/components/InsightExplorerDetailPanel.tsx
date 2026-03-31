@@ -72,7 +72,7 @@ const matchesEntityFilter = (
 const cardStyle = {
   borderRadius: '28px',
   border: '1px solid rgba(255,255,255,0.08)',
-  background: 'rgba(6, 14, 20, 0.82)',
+  background: 'linear-gradient(180deg, rgba(20, 41, 38, 0.72), rgba(12, 27, 28, 0.6))',
   backdropFilter: 'blur(24px)',
   boxShadow:
     '0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
@@ -280,10 +280,11 @@ export const InsightExplorerDetailPanel = ({
           <h3
             style={{
               marginTop: '1rem',
-              fontFamily: "'Instrument Serif', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: '1.9rem',
               color: 'white',
-              fontWeight: 400,
+              fontWeight: 700,
+              letterSpacing: '-0.03em',
             }}
           >
             No activity selected
@@ -343,11 +344,12 @@ export const InsightExplorerDetailPanel = ({
           </p>
           <h2
             style={{
-              fontFamily: "'Instrument Serif', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: '2rem',
               color: 'white',
-              fontWeight: 400,
+              fontWeight: 700,
               lineHeight: 1.15,
+              letterSpacing: '-0.03em',
             }}
           >
             {activity.title}

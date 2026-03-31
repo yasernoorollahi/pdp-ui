@@ -6,6 +6,6 @@
 
 .row {
   height: 110px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.6);
+  border-radius: 18px;
+  background: var(--surface-panel-bg-soft);
 }

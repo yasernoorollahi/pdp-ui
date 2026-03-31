@@ -10,7 +10,7 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   padding: 0 0.75rem;
 }
 
@@ -38,9 +38,10 @@
   display: grid;
   gap: 1rem;
   padding: 1rem;
-  border-radius: 14px;
-  border: 1px solid var(--color-border-faint);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.65), rgba(8, 15, 25, 0.9));
+  border-radius: 18px;
+  border: 1px solid var(--surface-panel-border);
+  background: var(--surface-panel-bg-soft);
+  box-shadow: var(--surface-card-shadow);
 }
 
 .row.security {
@@ -67,14 +68,14 @@
 
 .primary {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-text-white);
   font-size: 0.95rem;
   font-weight: 600;
 }
 
 .secondary {
   margin: 0;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.82rem;
 }
 
@@ -95,9 +96,9 @@
 .chip {
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid var(--color-border-subtle);
-  color: #cbd5f5;
+  background: var(--surface-panel-bg-inline);
+  border: 1px solid var(--surface-panel-border);
+  color: var(--color-text-secondary);
   font-size: 0.72rem;
 }
 

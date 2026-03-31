@@ -17,6 +17,9 @@ export type RelationshipMapFlowNodeData = {
   isHighlighted: boolean;
   isSelected: boolean;
   isFocused: boolean;
+  isCollapsedGroup?: boolean;
+  collapsedCount?: number;
+  collapsedHint?: string | null;
 };
 
 export type RelationshipMapFlowNode = Node<
@@ -111,7 +114,7 @@ const RelationshipMapNodeComponent = ({
 }: NodeProps<RelationshipMapFlowNode>) => {
   const tone = KIND_STYLES[data.kind];
   const isActive = data.isSelected || data.isFocused || data.isHighlighted;
-  const opacity = data.isDimmed ? 0.2 : 1;
+  const opacity = data.isDimmed ? 0.2 : data.isCollapsedGroup ? 0.92 : 1;
 
   const borderColor =
     data.isFocused || data.isSelected
@@ -120,19 +123,29 @@ const RelationshipMapNodeComponent = ({
         ? tone.borderActive
         : tone.border;
 
-  const boxShadow = data.isFocused
-    ? `0 0 0 1.5px rgba(255,255,255,0.14), 0 12px 36px ${tone.glowColor}, 0 0 0 4px rgba(255,255,255,0.04)`
-    : data.isSelected
-      ? `0 0 0 1px rgba(255,255,255,0.10), 0 12px 32px ${tone.glowColor}`
-      : data.isHighlighted
-        ? `0 10px 28px ${tone.glowColor}`
-        : `0 6px 20px rgba(0,0,0,0.28)`;
-
-  const transform = data.isSelected
-    ? 'translateY(-2px) scale(1.015)'
+  const boxShadow = data.isCollapsedGroup
+    ? `0 6px 18px rgba(0,0,0,0.22), inset 0 0 0 1px rgba(255,255,255,0.03)`
     : data.isFocused
-      ? 'scale(1.02)'
-      : 'scale(1)';
+      ? `0 0 0 1.5px rgba(255,255,255,0.14), 0 12px 36px ${tone.glowColor}, 0 0 0 4px rgba(255,255,255,0.04)`
+      : data.isSelected
+        ? `0 0 0 1px rgba(255,255,255,0.10), 0 12px 32px ${tone.glowColor}`
+        : data.isHighlighted
+          ? `0 10px 28px ${tone.glowColor}`
+          : `0 6px 20px rgba(0,0,0,0.28)`;
+
+  const transform = data.isCollapsedGroup
+    ? 'scale(1)'
+    : data.isSelected
+      ? 'translateY(-2px) scale(1.015)'
+      : data.isFocused
+        ? 'scale(1.02)'
+        : 'scale(1)';
+
+  const background = data.isCollapsedGroup
+    ? `linear-gradient(145deg, rgba(255,255,255,0.06), ${tone.badgeBg}, rgba(255,255,255,0.02))`
+    : tone.background;
+
+  const badgeLabel = data.isCollapsedGroup ? `${kindLabel(data.kind)} lane` : kindLabel(data.kind);
 
   return (
     <>
@@ -154,7 +167,7 @@ const RelationshipMapNodeComponent = ({
           minHeight: `${data.height}px`,
           borderRadius: '20px',
           border: `1px solid ${borderColor}`,
-          background: tone.background,
+          background,
           boxShadow,
           opacity,
           transform,
@@ -162,7 +175,7 @@ const RelationshipMapNodeComponent = ({
           color: 'white',
           backdropFilter: 'blur(16px)',
           transition: 'all 0.25s ease',
-          cursor: 'pointer',
+          cursor: data.isCollapsedGroup ? 'default' : 'pointer',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -206,7 +219,7 @@ const RelationshipMapNodeComponent = ({
                   flexShrink: 0,
                 }}
               />
-              {kindLabel(data.kind)}
+              {badgeLabel}
             </span>
 
             {/* Label */}
@@ -217,12 +230,26 @@ const RelationshipMapNodeComponent = ({
                 lineHeight: 1.3,
                 color: tone.labelColor,
               }}
-            >
-              {data.label}
-            </p>
+              >
+                {data.label}
+              </p>
+
+            {data.isCollapsedGroup && data.collapsedHint ? (
+              <p
+                style={{
+                  marginTop: '6px',
+                  fontSize: '0.72rem',
+                  lineHeight: 1.5,
+                  color: 'rgba(255,255,255,0.44)',
+                  maxWidth: '18rem',
+                }}
+              >
+                {data.collapsedHint}
+              </p>
+            ) : null}
 
             {/* Subtype */}
-            {subtypeStr(data.subtype) && (
+            {subtypeStr(data.subtype) && !data.isCollapsedGroup && (
               <p
                 style={{
                   marginTop: '3px',
@@ -250,7 +277,7 @@ const RelationshipMapNodeComponent = ({
               color: 'rgba(255,255,255,0.55)',
             }}
           >
-            {data.frequency}×
+            {data.isCollapsedGroup ? `${data.collapsedCount ?? data.frequency} hidden` : `${data.frequency}×`}
           </span>
         </div>
 
@@ -268,8 +295,10 @@ const RelationshipMapNodeComponent = ({
             borderTop: '1px solid rgba(255,255,255,0.05)',
           }}
         >
-          <span>{data.connectionCount} links</span>
-          {data.isFocused ? (
+          <span>{data.isCollapsedGroup ? 'collapsed' : `${data.connectionCount} links`}</span>
+          {data.isCollapsedGroup ? (
+            <span style={{ color: tone.badgeText }}>Expand via related node</span>
+          ) : data.isFocused ? (
             <span style={{ color: tone.badgeText }}>Focused</span>
           ) : data.isSelected ? (
             <span style={{ color: 'rgba(255,255,255,0.5)' }}>Selected</span>

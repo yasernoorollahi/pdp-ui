@@ -5,11 +5,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 1rem 2rem 1.1rem;
   background: var(--color-glass-overlay);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--color-border-glass);
+  box-shadow: 0 18px 40px rgba(6, 24, 24, 0.14);
   animation: fadeInDown 0.5s ease both;
 }
 
@@ -20,11 +21,11 @@
 }
 
 .title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
 }
 
 .breadcrumb {

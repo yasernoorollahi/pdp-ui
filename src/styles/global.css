@@ -1,12 +1,14 @@
 /* ============================================
    FONTS
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ============================================
    CSS VARIABLES
    ============================================ */
 :root {
+  --font-ui: 'Inter', 'SF Pro Text', sans-serif;
+  --font-display: 'Inter', 'SF Pro Text', sans-serif;
   --teal: #2dd4bf;
   --teal-deep: #0d9488;
   --teal-muted: rgba(45, 212, 191, 0.18);
@@ -50,7 +52,15 @@ html {
 body {
   background: var(--dark-bg);
   color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-ui);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  font-family: var(--font-ui);
 }
 
 /* ============================================

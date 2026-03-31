@@ -56,10 +56,16 @@
   --color-bg-soft:        #0a151a;
   --color-bg-soft-2:      #0f1d24;
   --color-surface:        #0b1520;
-  --color-glass:          rgba(17, 24, 39, 0.6);
+  --color-glass:
+    linear-gradient(160deg, rgba(20, 39, 39, 0.72), rgba(18, 32, 36, 0.54)),
+    rgba(255, 255, 255, 0.03);
   --color-glass-dark:     rgba(9, 18, 28, 0.96);
-  --color-glass-panel:    rgba(6, 12, 16, 0.75);
-  --color-glass-overlay:  rgba(6, 12, 16, 0.6);
+  --color-glass-panel:
+    linear-gradient(180deg, rgba(20, 41, 38, 0.72), rgba(12, 27, 28, 0.6)),
+    rgba(6, 12, 16, 0.48);
+  --color-glass-overlay:
+    linear-gradient(180deg, rgba(20, 43, 39, 0.62), rgba(10, 24, 24, 0.46)),
+    rgba(6, 12, 16, 0.35);
   --color-chat-panel:     rgba(8, 18, 22, 0.78);
   --color-chat-panel-strong: rgba(7, 14, 18, 0.9);
   --color-chat-highlight: rgba(45, 212, 191, 0.26);
@@ -67,9 +73,37 @@
   --color-chat-sheen:     rgba(255, 255, 255, 0.18);
   --color-chat-shadow:    rgba(2, 8, 10, 0.52);
   --color-bg-gradient:
-    radial-gradient(120% 95% at 82% 8%, rgba(13, 148, 136, 0.28) 0%, transparent 58%),
-    radial-gradient(95% 90% at 10% 88%, rgba(45, 212, 191, 0.2) 0%, transparent 56%),
-    linear-gradient(160deg, var(--color-bg-soft) 0%, var(--color-bg-soft-2) 52%, #11242b 100%);
+    radial-gradient(120% 95% at 82% 8%, rgba(13, 148, 136, 0.34) 0%, transparent 58%),
+    radial-gradient(95% 90% at 10% 88%, rgba(45, 212, 191, 0.22) 0%, transparent 56%),
+    linear-gradient(160deg, #0c181b 0%, #102729 52%, #16383b 100%);
+
+  /* Insight-inspired surfaces */
+  --surface-hero-bg:
+    linear-gradient(135deg, rgba(15, 34, 34, 0.88), rgba(18, 44, 46, 0.9)),
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.18), transparent 38%);
+  --surface-panel-bg:
+    linear-gradient(160deg, rgba(17, 37, 37, 0.82), rgba(18, 42, 44, 0.7));
+  --surface-panel-bg-soft:
+    linear-gradient(180deg, rgba(20, 40, 40, 0.5), rgba(16, 33, 34, 0.28));
+  --surface-panel-bg-inline: rgba(17, 38, 38, 0.44);
+  --surface-panel-border: rgba(45, 212, 191, 0.12);
+  --surface-panel-border-strong: rgba(45, 212, 191, 0.16);
+  --surface-panel-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --surface-card-shadow:
+    0 12px 34px rgba(6, 24, 24, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --surface-card-shadow-hover:
+    0 16px 38px rgba(6, 24, 24, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --surface-grid-overlay:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  --surface-hero-radius: 26px;
+  --surface-card-radius: 18px;
+  --surface-inline-radius: 18px;
+  --surface-page-gap: 1.85rem;
 
   /* Text */
   --color-text-primary:   #e8f5f3;
@@ -80,9 +114,9 @@
   --color-text-slate-dim: #64748b;
 
   /* Borders */
-  --color-border-glass:   rgba(45, 212, 191, 0.15);
-  --color-border-subtle:  rgba(255, 255, 255, 0.07);
-  --color-border-faint:   rgba(255, 255, 255, 0.04);
+  --color-border-glass:   rgba(45, 212, 191, 0.12);
+  --color-border-subtle:  rgba(255, 255, 255, 0.08);
+  --color-border-faint:   rgba(255, 255, 255, 0.05);
 
   /* Glows */
   --color-glow-teal:      rgba(45, 212, 191, 0.25);
