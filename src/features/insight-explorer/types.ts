@@ -89,6 +89,7 @@ export type InsightRelationItemViewModel = {
   id: string;
   label: string;
   frequency: number;
+  lastSeenAt: string;
   activityIds: string[];
   relatedEntityIds: string[];
 };
@@ -98,6 +99,7 @@ export type InsightEntityViewModel = {
   label: string;
   type: EntityType;
   frequency: number;
+  lastSeenAt: string;
   activityIds: string[];
 };
 
@@ -142,6 +144,7 @@ export type RelationshipMapNodeViewModel = {
   kind: RelationshipMapNodeKind;
   subtype: RelationshipMapNodeSubtype;
   frequency: number;
+  lastSeenAt: string;
   importance: number;
   connectedNodeIds: string[];
 };
@@ -152,6 +155,8 @@ export type RelationshipMapEdgeViewModel = {
   target: string;
   relation: RelationshipMapEdgeRelation;
   weight: number;
+  confidence?: number;
+  lastSeenAt: string;
 };
 
 export type RelationshipMapViewModel = {
