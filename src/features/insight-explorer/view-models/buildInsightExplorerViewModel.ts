@@ -20,6 +20,7 @@ type MutableRelation = {
   id: string;
   label: string;
   frequency: number;
+  lastSeenAt: string;
   activityIds: Set<string>;
   relatedEntityIds: Set<string>;
 };
@@ -29,6 +30,7 @@ type MutableEntity = {
   label: string;
   type: EntityType;
   frequency: number;
+  lastSeenAt: string;
   activityIds: Set<string>;
 };
 
@@ -128,6 +130,7 @@ const upsertRelation = (
   store: Map<string, MutableRelation>,
   label: string,
   activityId: string,
+  lastSeenAt: string,
   relatedEntityIds: string[],
 ) => {
   const key = normalizeText(label);
@@ -135,6 +138,7 @@ const upsertRelation = (
 
   if (current) {
     current.frequency += 1;
+    current.lastSeenAt = pickMostRecentTimestamp(current.lastSeenAt, lastSeenAt);
     current.activityIds.add(activityId);
     relatedEntityIds.forEach((entityId) => current.relatedEntityIds.add(entityId));
     return;
@@ -144,16 +148,18 @@ const upsertRelation = (
     id: key,
     label,
     frequency: 1,
+    lastSeenAt,
     activityIds: new Set([activityId]),
     relatedEntityIds: new Set(relatedEntityIds),
   });
 };
 
-const upsertEntity = (store: Map<string, MutableEntity>, entity: EntityRecord, activityId: string) => {
+const upsertEntity = (store: Map<string, MutableEntity>, entity: EntityRecord, activityId: string, lastSeenAt: string) => {
   const current = store.get(entity.id);
 
   if (current) {
     current.frequency += 1;
+    current.lastSeenAt = pickMostRecentTimestamp(current.lastSeenAt, lastSeenAt);
     current.activityIds.add(activityId);
     return;
   }
@@ -163,6 +169,7 @@ const upsertEntity = (store: Map<string, MutableEntity>, entity: EntityRecord, a
     label: entity.label,
     type: entity.type,
     frequency: 1,
+    lastSeenAt,
     activityIds: new Set([activityId]),
   });
 };
@@ -173,6 +180,7 @@ const toRelationArray = (store: Map<string, MutableRelation>): InsightRelationIt
       id: item.id,
       label: item.label,
       frequency: item.frequency,
+      lastSeenAt: item.lastSeenAt,
       activityIds: Array.from(item.activityIds),
       relatedEntityIds: Array.from(item.relatedEntityIds),
     })),
@@ -185,6 +193,7 @@ const toEntityArray = (store: Map<string, MutableEntity>): InsightEntityViewMode
       label: entity.label,
       type: entity.type,
       frequency: entity.frequency,
+      lastSeenAt: entity.lastSeenAt,
       activityIds: Array.from(entity.activityIds),
     })),
   );
@@ -197,6 +206,8 @@ const toEntityGroups = (entities: InsightEntityViewModel[]) => ({
 });
 
 const buildGroupTitle = (label: string) => sentenceCase(label);
+const pickMostRecentTimestamp = (left: string, right: string) =>
+  new Date(left).getTime() >= new Date(right).getTime() ? left : right;
 
 export const buildInsightExplorerViewModel = (data: InsightExplorerNormalizedData): InsightExplorerViewModel => {
   const entities = toEntityRecords(data);
@@ -205,6 +216,7 @@ export const buildInsightExplorerViewModel = (data: InsightExplorerNormalizedDat
   const contextByActivityId = new Map<string, typeof data.user_context>();
   const topicsByActivityId = new Map<string, typeof data.user_topics>();
   const intentsByActivityId = new Map<string, typeof data.user_intents>();
+  const activityTimestampById = new Map(data.user_activities.map((activity) => [activity.id, activity.occurred_at]));
 
   entities.forEach((entity) => {
     const current = entitiesByActivityId.get(entity.activityId) ?? [];
@@ -255,7 +267,7 @@ export const buildInsightExplorerViewModel = (data: InsightExplorerNormalizedDat
     };
 
     current.frequency += 1;
-    current.lastObservedAt = new Date(activity.occurred_at) > new Date(current.lastObservedAt) ? activity.occurred_at : current.lastObservedAt;
+    current.lastObservedAt = pickMostRecentTimestamp(current.lastObservedAt, activity.occurred_at);
     current.variants.add(activity.label);
 
     [...(activity.tags ?? []), ...(intentsByActivityId.get(activity.id)?.map((intent) => intent.tag) ?? [])].forEach((tag) => {
@@ -264,15 +276,35 @@ export const buildInsightExplorerViewModel = (data: InsightExplorerNormalizedDat
       current.tagCounts.set(normalizedTag, (current.tagCounts.get(normalizedTag) ?? 0) + 1);
     });
 
-    (entitiesByActivityId.get(activity.id) ?? []).forEach((entity) => upsertEntity(current.entities, entity, activity.id));
+    (entitiesByActivityId.get(activity.id) ?? []).forEach((entity) =>
+      upsertEntity(current.entities, entity, activity.id, activityTimestampById.get(activity.id) ?? activity.occurred_at),
+    );
     (cognitiveByActivityId.get(activity.id) ?? []).forEach((item) =>
-      upsertRelation(current.cognitiveStates.get(item.group) ?? new Map<string, MutableRelation>(), item.phrase, activity.id, item.related_entity_ids ?? []),
+      upsertRelation(
+        current.cognitiveStates.get(item.group) ?? new Map<string, MutableRelation>(),
+        item.phrase,
+        activity.id,
+        activityTimestampById.get(activity.id) ?? activity.occurred_at,
+        item.related_entity_ids ?? [],
+      ),
     );
     (contextByActivityId.get(activity.id) ?? []).forEach((item) =>
-      upsertRelation(current.context.get(item.type) ?? new Map<string, MutableRelation>(), item.phrase, activity.id, item.related_entity_ids ?? []),
+      upsertRelation(
+        current.context.get(item.type) ?? new Map<string, MutableRelation>(),
+        item.phrase,
+        activity.id,
+        activityTimestampById.get(activity.id) ?? activity.occurred_at,
+        item.related_entity_ids ?? [],
+      ),
     );
     (topicsByActivityId.get(activity.id) ?? []).forEach((item) =>
-      upsertRelation(current.topics, item.label, activity.id, item.related_entity_ids ?? []),
+      upsertRelation(
+        current.topics,
+        item.label,
+        activity.id,
+        activityTimestampById.get(activity.id) ?? activity.occurred_at,
+        item.related_entity_ids ?? [],
+      ),
     );
 
     groups.set(normalizedGroupKey, current);

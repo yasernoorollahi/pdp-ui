@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useTransition, type ReactNode } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react';
 import {
   Background,
   Controls,
@@ -6,7 +6,7 @@ import {
   MiniMap,
   Position,
   ReactFlow,
-  type Edge,
+  type ReactFlowInstance,
   type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -29,6 +29,20 @@ import {
   type RelationshipQuestionId,
   type RelationshipQuestionViewModel,
 } from '../view-models/buildRelationshipMeaningModel';
+import {
+  computeCognitiveWeight,
+  formatLastSeenLabel,
+  normalizeWeight,
+  resolveNumericBounds,
+  scaleEdgeConfidence,
+  scaleEdgeStrength,
+  scaleNodeGlow,
+  scaleNodePositionInfluence,
+  scaleNodeSize,
+  scaleRecencyOpacity,
+} from '../utils/relationshipMapSignals';
+import { buildRelationshipMapPatternModel } from '../utils/relationshipMapPatterns';
+import { RelationshipMapEdge, type RelationshipMapFlowEdge, type RelationshipMapFlowEdgeData } from './RelationshipMapEdge';
 import { RelationshipMapNode, type RelationshipMapFlowNodeData } from './RelationshipMapNode';
 
 type RelationshipMapFilters = {
@@ -45,6 +59,8 @@ type DisplayGraphNode = RelationshipMapNodeViewModel & {
 };
 
 const COLLAPSED_NODE_PREFIX = 'collapsed:';
+const DEFAULT_FOCUS_DEPTH = 2;
+const HOVER_PREVIEW_DEPTH = 1;
 
 const createDefaultFilters = (): RelationshipMapFilters => ({
   activities: true,
@@ -56,6 +72,7 @@ const createDefaultFilters = (): RelationshipMapFilters => ({
 const createQuestionFilters = (_questionId: RelationshipQuestionId): RelationshipMapFilters => createDefaultFilters();
 
 const nodeTypes = { relationshipMapNode: RelationshipMapNode };
+const edgeTypes = { relationshipMapEdge: RelationshipMapEdge };
 
 const COLUMN_X: Record<'activity' | 'state' | 'context' | 'entity', number> = {
   activity: 80,
@@ -75,6 +92,7 @@ const EDGE_STROKES = {
   active: 'rgba(240, 249, 255, 0.82)',
   default: 'rgba(148, 163, 184, 0.3)',
   muted: 'rgba(71, 85, 105, 0.12)',
+  glow: 'rgba(226, 232, 240, 0.38)',
 } as const;
 
 const stateLabelMap: Record<'CONFIDENCE' | 'UNCERTAINTY', string> = {
@@ -95,11 +113,6 @@ const entityLabelMap: Record<EntityType, string> = {
   PROJECT: 'Projects',
 };
 
-const scaleBetween = (value: number, minValue: number, maxValue: number, outputMin: number, outputMax: number) => {
-  if (maxValue <= minValue) return (outputMin + outputMax) / 2;
-  return outputMin + ((value - minValue) / (maxValue - minValue)) * (outputMax - outputMin);
-};
-
 const isNodeVisible = (node: RelationshipMapNodeViewModel, filters: RelationshipMapFilters) => {
   if (node.kind === 'activity') return filters.activities;
   if (node.kind === 'state') return filters.states;
@@ -117,6 +130,9 @@ const createAdjacencyMap = (graph: RelationshipMapViewModel) => {
 };
 
 const isCollapsedNodeId = (nodeId: string) => nodeId.startsWith(COLLAPSED_NODE_PREFIX);
+const pickMostRecentTimestamp = (left: string, right: string) =>
+  new Date(left).getTime() >= new Date(right).getTime() ? left : right;
+const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
 
 const labelForKind = (node: RelationshipMapNodeViewModel | null) => {
   if (!node) return 'None';
@@ -165,6 +181,7 @@ const buildCollapsedNodes = (hiddenNodes: RelationshipMapNodeViewModel[]): Displ
       subtype: RelationshipMapNodeSubtype;
       count: number;
       importance: number;
+      lastSeenAt: string;
     }
   >();
 
@@ -175,10 +192,12 @@ const buildCollapsedNodes = (hiddenNodes: RelationshipMapNodeViewModel[]): Displ
       subtype: node.subtype,
       count: 0,
       importance: 0,
+      lastSeenAt: node.lastSeenAt,
     };
 
     current.count += 1;
     current.importance += node.importance;
+    current.lastSeenAt = pickMostRecentTimestamp(current.lastSeenAt, node.lastSeenAt);
     groups.set(key, current);
   });
 
@@ -194,6 +213,7 @@ const buildCollapsedNodes = (hiddenNodes: RelationshipMapNodeViewModel[]): Displ
       kind: group.kind,
       subtype: group.subtype,
       frequency: group.count,
+      lastSeenAt: group.lastSeenAt,
       importance: Math.max(group.importance / Math.max(group.count, 1), 1),
       connectedNodeIds: [],
       isCollapsedGroup: true,
@@ -202,37 +222,54 @@ const buildCollapsedNodes = (hiddenNodes: RelationshipMapNodeViewModel[]): Displ
     }));
 };
 
-const collectExpandedRealNodeIds = (
-  focusedNodeId: string | null,
+const collectNodeDepths = (
+  startNodeId: string | null,
   filteredNodes: RelationshipMapNodeViewModel[],
-  nodeById: Map<string, RelationshipMapNodeViewModel>,
   adjacency: Map<string, string[]>,
+  maxDepth: number,
 ) => {
-  if (!focusedNodeId) {
-    return new Set(filteredNodes.filter((node) => node.kind === 'activity').map((node) => node.id));
+  if (!startNodeId || isCollapsedNodeId(startNodeId)) {
+    return new Map<string, number>();
   }
 
-  const expanded = new Set<string>([focusedNodeId]);
-  const directNeighbors = adjacency.get(focusedNodeId) ?? [];
+  const allowedIds = new Set(filteredNodes.map((node) => node.id));
 
-  directNeighbors.forEach((neighborId) => {
-    expanded.add(neighborId);
-  });
+  if (!allowedIds.has(startNodeId)) {
+    return new Map<string, number>();
+  }
 
-  const bridgeActivityIds = [focusedNodeId, ...directNeighbors]
-    .filter((nodeId) => nodeById.get(nodeId)?.kind === 'activity');
+  const steps = new Map<string, number>([[startNodeId, 0]]);
+  const queue = [startNodeId];
 
-  bridgeActivityIds.forEach((activityId) => {
-    (adjacency.get(activityId) ?? []).forEach((neighborId) => {
-      expanded.add(neighborId);
+  while (queue.length > 0) {
+    const currentNodeId = queue.shift();
+
+    if (!currentNodeId) continue;
+
+    const currentDepth = steps.get(currentNodeId) ?? 0;
+
+    if (currentDepth >= maxDepth) {
+      continue;
+    }
+
+    (adjacency.get(currentNodeId) ?? []).forEach((neighborId) => {
+      if (!allowedIds.has(neighborId) || steps.has(neighborId)) {
+        return;
+      }
+
+      steps.set(neighborId, currentDepth + 1);
+      queue.push(neighborId);
     });
-  });
+  }
 
-  const filteredNodeIdSet = new Set(filteredNodes.map((node) => node.id));
-  return new Set(Array.from(expanded).filter((nodeId) => filteredNodeIdSet.has(nodeId)));
+  return steps;
 };
 
-const layoutNodes = (nodes: DisplayGraphNode[], dimensions: Map<string, { width: number; height: number }>) => {
+const layoutNodes = (
+  nodes: DisplayGraphNode[],
+  dimensions: Map<string, { width: number; height: number }>,
+  positionInfluence?: Map<string, number>,
+) => {
   const positions = new Map<string, { x: number; y: number }>();
 
   (['activity', 'state', 'context', 'entity'] as const).forEach((kind) => {
@@ -253,8 +290,14 @@ const layoutNodes = (nodes: DisplayGraphNode[], dimensions: Map<string, { width:
     let currentY = Math.max(48, 410 - totalHeight / 2);
 
     columnNodes.forEach((node) => {
-      positions.set(node.id, { x: COLUMN_X[kind], y: currentY });
-      currentY += (dimensions.get(node.id)?.height ?? 88) + 26;
+      const nodeHeight = dimensions.get(node.id)?.height ?? 88;
+      const idealY = 410 - nodeHeight / 2;
+      const weightShift = node.isCollapsedGroup
+        ? 0
+        : Math.max(-12, Math.min(12, (idealY - currentY) * (positionInfluence?.get(node.id) ?? 0) * 0.08));
+
+      positions.set(node.id, { x: COLUMN_X[kind], y: currentY + weightShift });
+      currentY += nodeHeight + 26;
     });
   });
 
@@ -538,19 +581,25 @@ const secondarySectionTitle = (node: RelationshipMapNodeViewModel | null) => {
 export const RelationshipMapView = ({
   graph,
   viewModel,
+  focusDepth = DEFAULT_FOCUS_DEPTH,
 }: {
   graph: RelationshipMapViewModel;
   viewModel: InsightExplorerViewModel;
+  focusDepth?: number;
 }) => {
   const [filters, setFilters] = useState<RelationshipMapFilters>(() => createDefaultFilters());
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [hoverPreviewNodeId, setHoverPreviewNodeId] = useState<string | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<RelationshipQuestionId | null>(null);
   const [isPending, startTransition] = useTransition();
+  const flowInstanceRef = useRef<ReactFlowInstance<Node<RelationshipMapFlowNodeData>, RelationshipMapFlowEdge> | null>(null);
+  const lastViewportFocusRef = useRef<string | null>(null);
+  const normalizedFocusDepth = Math.max(1, Math.round(focusDepth));
 
   const adjacency = useMemo(() => createAdjacencyMap(graph), [graph]);
-  const nodeById = useMemo(() => new Map(graph.nodes.map((node) => [node.id, node])), [graph.nodes]);
   const meaningModel = useMemo(() => buildRelationshipMeaningModel(viewModel, graph), [viewModel, graph]);
+  const patternModel = useMemo(() => buildRelationshipMapPatternModel(viewModel), [viewModel]);
 
   const activeQuestion = useMemo(
     () => meaningModel.questions.find((question) => question.id === activeQuestionId) ?? null,
@@ -563,9 +612,26 @@ export const RelationshipMapView = ({
   const activeInsight = focusedNodeId ? meaningModel.insightsByNodeId[focusedNodeId] ?? null : null;
 
   const filteredNodes = useMemo(() => graph.nodes.filter((node) => isNodeVisible(node, filters)), [filters, graph.nodes]);
+  const focusDepthMap = useMemo(
+    () => collectNodeDepths(focusedNodeId, filteredNodes, adjacency, normalizedFocusDepth),
+    [adjacency, filteredNodes, focusedNodeId, normalizedFocusDepth],
+  );
+  const hoverDepthMap = useMemo(
+    () =>
+      !focusedNodeId
+        ? collectNodeDepths(hoverPreviewNodeId, filteredNodes, adjacency, Math.min(normalizedFocusDepth, HOVER_PREVIEW_DEPTH))
+        : new Map<string, number>(),
+    [adjacency, filteredNodes, focusedNodeId, hoverPreviewNodeId, normalizedFocusDepth],
+  );
+  const hoverPreviewNodeIds = useMemo(() => new Set(hoverDepthMap.keys()), [hoverDepthMap]);
   const expandedRealNodeIds = useMemo(
-    () => collectExpandedRealNodeIds(focusedNodeId, filteredNodes, nodeById, adjacency),
-    [adjacency, filteredNodes, focusedNodeId, nodeById],
+    () =>
+      focusedNodeId
+        ? new Set(focusDepthMap.keys())
+        : hoverPreviewNodeId && hoverDepthMap.size > 0
+          ? new Set(hoverDepthMap.keys())
+          : new Set(filteredNodes.filter((node) => node.kind === 'activity').map((node) => node.id)),
+    [filteredNodes, focusDepthMap, focusedNodeId, hoverPreviewNodeId, hoverDepthMap],
   );
 
   const visibleRealNodes = useMemo(
@@ -582,49 +648,218 @@ export const RelationshipMapView = ({
     [collapsedNodes, visibleRealNodes],
   );
   const visibleRealNodeIdSet = useMemo(() => new Set(visibleRealNodes.map((node) => node.id)), [visibleRealNodes]);
+  const nodeFrequencyBounds = useMemo(
+    () => resolveNumericBounds(filteredNodes.map((node) => node.frequency)),
+    [filteredNodes],
+  );
+  const nodeIntensityBounds = useMemo(
+    () => resolveNumericBounds(filteredNodes.map((node) => node.importance)),
+    [filteredNodes],
+  );
+  const edgeWeightBounds = useMemo(
+    () => resolveNumericBounds(graph.edges.map((edge) => edge.weight)),
+    [graph.edges],
+  );
 
   const visibleEdges = useMemo(
     () => graph.edges.filter((edge) => visibleRealNodeIdSet.has(edge.source) && visibleRealNodeIdSet.has(edge.target)),
     [graph.edges, visibleRealNodeIdSet],
   );
 
-  const activePreviewNodeId = focusedNodeId && !isCollapsedNodeId(focusedNodeId) ? focusedNodeId : hoveredNodeId;
+  const activePreviewNodeId =
+    focusedNodeId && !isCollapsedNodeId(focusedNodeId)
+      ? focusedNodeId
+      : hoverPreviewNodeId && visibleRealNodeIdSet.has(hoverPreviewNodeId)
+        ? hoverPreviewNodeId
+        : null;
+  const activeDepthMap = focusedNodeId ? focusDepthMap : hoverDepthMap;
+  const hoveredPatternNodeId =
+    hoveredNodeId && !isCollapsedNodeId(hoveredNodeId) && visibleRealNodeIdSet.has(hoveredNodeId) ? hoveredNodeId : null;
+  const hoveredPatternPaths = useMemo(
+    () => (hoveredPatternNodeId ? patternModel.pathsByNodeId.get(hoveredPatternNodeId) ?? [] : []),
+    [hoveredPatternNodeId, patternModel],
+  );
+  const activePatternPaths = hoveredPatternPaths.length > 0 ? hoveredPatternPaths : patternModel.topPaths;
+  const activePatternPathIdSet = useMemo(() => new Set(activePatternPaths.map((path) => path.id)), [activePatternPaths]);
 
   const highlightedNodeIds = useMemo(() => {
     if (focusedNodeId) {
-      return new Set(displayNodes.map((node) => node.id));
+      return new Set(focusDepthMap.keys());
     }
 
-    if (hoveredNodeId && visibleRealNodeIdSet.has(hoveredNodeId)) {
-      const previewIds = collectExpandedRealNodeIds(hoveredNodeId, filteredNodes, nodeById, adjacency);
-      return new Set(Array.from(previewIds));
+    if (hoverPreviewNodeId && hoverDepthMap.size > 0) {
+      return new Set(hoverDepthMap.keys());
     }
 
     return new Set<string>();
-  }, [adjacency, displayNodes, filteredNodes, focusedNodeId, hoveredNodeId, nodeById, visibleRealNodeIdSet]);
+  }, [focusDepthMap, focusedNodeId, hoverDepthMap, hoverPreviewNodeId]);
 
-  const dimensionMap = useMemo(() => {
-    const realNodes = visibleRealNodes.length > 0 ? visibleRealNodes : filteredNodes;
-    const maxImportance = Math.max(...realNodes.map((node) => node.importance), 1);
-    const minImportance = Math.min(...realNodes.map((node) => node.importance), maxImportance);
-    const next = new Map<string, { width: number; height: number }>();
+  const realNodeSignalMap = useMemo(() => {
+    const rawWeightMap = new Map<string, number>();
 
-    displayNodes.forEach((node) => {
-      if (node.isCollapsedGroup) {
-        next.set(node.id, { width: 194, height: 88 });
-        return;
+    filteredNodes.forEach((node) => {
+      rawWeightMap.set(
+        node.id,
+        computeCognitiveWeight(
+          {
+            frequency: node.frequency,
+            lastSeenAt: node.lastSeenAt,
+            intensity: node.importance,
+          },
+          nodeFrequencyBounds,
+          nodeIntensityBounds,
+        ).raw,
+      );
+    });
+
+    const nodeWeightBounds = resolveNumericBounds(Array.from(rawWeightMap.values()), 0.5);
+    const next = new Map<
+      string,
+      {
+        width: number;
+        height: number;
+        cognitiveWeight: number;
+        positionInfluence: number;
+        glowOpacity: number;
+        glowBlur: number;
+        glowSpread: number;
+        isDominantWeight: boolean;
+        recencyOpacity: number;
+        lastSeenLabel: string;
       }
+    >();
+
+    filteredNodes.forEach((node) => {
+      const cognitiveWeight = rawWeightMap.get(node.id) ?? 0.5;
+      const size = scaleNodeSize(cognitiveWeight, nodeWeightBounds);
+      const glow = scaleNodeGlow(cognitiveWeight, nodeWeightBounds);
 
       next.set(node.id, {
-        width: Math.round(scaleBetween(node.importance, minImportance, maxImportance, 198, 272)),
-        height: Math.round(scaleBetween(node.importance, minImportance, maxImportance, 84, 108)),
+        width: size.width,
+        height: size.height,
+        cognitiveWeight: size.normalized,
+        positionInfluence: scaleNodePositionInfluence(cognitiveWeight, nodeWeightBounds),
+        glowOpacity: glow.opacity,
+        glowBlur: glow.blur,
+        glowSpread: glow.spread,
+        isDominantWeight: glow.isDominantWeight,
+        recencyOpacity: scaleRecencyOpacity(node.lastSeenAt, 0.42, 1),
+        lastSeenLabel: formatLastSeenLabel(node.lastSeenAt),
       });
     });
 
     return next;
-  }, [displayNodes, filteredNodes, visibleRealNodes]);
+  }, [filteredNodes, nodeFrequencyBounds, nodeIntensityBounds]);
 
-  const positions = useMemo(() => layoutNodes(displayNodes, dimensionMap), [dimensionMap, displayNodes]);
+  const nodeSignalMap = useMemo(() => {
+    const next = new Map<
+      string,
+      {
+        width: number;
+        height: number;
+        cognitiveWeight: number;
+        positionInfluence: number;
+        glowOpacity: number;
+        glowBlur: number;
+        glowSpread: number;
+        isDominantWeight: boolean;
+        recencyOpacity: number;
+        lastSeenLabel: string;
+      }
+    >();
+
+    displayNodes.forEach((node) => {
+      if (node.isCollapsedGroup) {
+        next.set(node.id, {
+          width: 194,
+          height: 88,
+          cognitiveWeight: 0.3,
+          positionInfluence: 0,
+          glowOpacity: 0,
+          glowBlur: 18,
+          glowSpread: 0,
+          isDominantWeight: false,
+          recencyOpacity: scaleRecencyOpacity(node.lastSeenAt, 0.68, 0.94),
+          lastSeenLabel: formatLastSeenLabel(node.lastSeenAt),
+        });
+        return;
+      }
+
+      const realSignal = realNodeSignalMap.get(node.id);
+
+      next.set(node.id, {
+        width: realSignal?.width ?? 220,
+        height: realSignal?.height ?? 90,
+        cognitiveWeight: realSignal?.cognitiveWeight ?? 0.5,
+        positionInfluence: realSignal?.positionInfluence ?? 0,
+        glowOpacity: realSignal?.glowOpacity ?? 0,
+        glowBlur: realSignal?.glowBlur ?? 18,
+        glowSpread: realSignal?.glowSpread ?? 0,
+        isDominantWeight: realSignal?.isDominantWeight ?? false,
+        recencyOpacity: realSignal?.recencyOpacity ?? 1,
+        lastSeenLabel: realSignal?.lastSeenLabel ?? 'last seen recently',
+      });
+    });
+
+    return next;
+  }, [displayNodes, realNodeSignalMap]);
+
+  const dimensionMap = useMemo(() => {
+    const next = new Map<string, { width: number; height: number }>();
+
+    nodeSignalMap.forEach((signal, nodeId) => {
+      next.set(nodeId, { width: signal.width, height: signal.height });
+    });
+
+    return next;
+  }, [nodeSignalMap]);
+  const realDimensionMap = useMemo(() => {
+    const next = new Map<string, { width: number; height: number }>();
+
+    realNodeSignalMap.forEach((signal, nodeId) => {
+      next.set(nodeId, { width: signal.width, height: signal.height });
+    });
+
+    return next;
+  }, [realNodeSignalMap]);
+  const realPositionInfluenceMap = useMemo(() => {
+    const next = new Map<string, number>();
+
+    realNodeSignalMap.forEach((signal, nodeId) => {
+      next.set(nodeId, signal.positionInfluence);
+    });
+
+    return next;
+  }, [realNodeSignalMap]);
+  const realBasePositions = useMemo(
+    () => layoutNodes(filteredNodes, realDimensionMap, realPositionInfluenceMap),
+    [filteredNodes, realDimensionMap, realPositionInfluenceMap],
+  );
+  const collapsedNodesOnly = useMemo(() => displayNodes.filter((node) => node.isCollapsedGroup), [displayNodes]);
+  const collapsedDimensionMap = useMemo(() => {
+    const next = new Map<string, { width: number; height: number }>();
+
+    collapsedNodesOnly.forEach((node) => {
+      next.set(node.id, { width: 194, height: 88 });
+    });
+
+    return next;
+  }, [collapsedNodesOnly]);
+  const collapsedBasePositions = useMemo(
+    () => layoutNodes(collapsedNodesOnly, collapsedDimensionMap),
+    [collapsedDimensionMap, collapsedNodesOnly],
+  );
+
+  const positions = useMemo(() => {
+    const next = new Map<string, { x: number; y: number }>();
+
+    displayNodes.forEach((node) => {
+      const basePosition = node.isCollapsedGroup ? collapsedBasePositions.get(node.id) : realBasePositions.get(node.id);
+      next.set(node.id, basePosition ?? { x: COLUMN_X[node.kind], y: 120 });
+    });
+
+    return next;
+  }, [collapsedBasePositions, displayNodes, realBasePositions]);
 
   const flowNodes = useMemo<Node<RelationshipMapFlowNodeData>[]>(
     () =>
@@ -637,26 +872,47 @@ export const RelationshipMapView = ({
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         data: {
+          ...(nodeSignalMap.get(node.id) ?? {
+            width: 220,
+            height: 90,
+            cognitiveWeight: 0.5,
+            positionInfluence: 0,
+            glowOpacity: 0,
+            glowBlur: 18,
+            glowSpread: 0,
+            isDominantWeight: false,
+            recencyOpacity: 1,
+            lastSeenLabel: 'last seen recently',
+          }),
           label: node.label,
           kind: node.kind,
           subtype: node.subtype,
           frequency: node.frequency,
+          lastSeenAt: node.lastSeenAt,
           connectionCount: node.connectedNodeIds.length,
-          width: dimensionMap.get(node.id)?.width ?? 220,
-          height: dimensionMap.get(node.id)?.height ?? 90,
-          isDimmed: activePreviewNodeId ? !highlightedNodeIds.has(node.id) && !node.isCollapsedGroup : false,
+          cognitiveWeight: nodeSignalMap.get(node.id)?.cognitiveWeight ?? 0.5,
+          focusDistance: activeDepthMap.get(node.id) ?? null,
+          focusStrength:
+            focusedNodeId && activeDepthMap.has(node.id)
+              ? 1 - (activeDepthMap.get(node.id) ?? 0) / (normalizedFocusDepth + 1.2)
+              : hoveredNodeId && activeDepthMap.has(node.id)
+                ? 0.88 - (activeDepthMap.get(node.id) ?? 0) * 0.16
+                : 0,
+          isHovered: hoveredNodeId === node.id,
+          isDimmed: activePreviewNodeId ? !highlightedNodeIds.has(node.id) : false,
           isHighlighted: activePreviewNodeId ? highlightedNodeIds.has(node.id) && focusedNodeId !== node.id : false,
           isSelected: false,
           isFocused: focusedNodeId === node.id,
+          isDominantWeight: nodeSignalMap.get(node.id)?.isDominantWeight ?? false,
           isCollapsedGroup: node.isCollapsedGroup,
           collapsedCount: node.collapsedCount,
           collapsedHint: node.collapsedHint,
         },
       })),
-    [activePreviewNodeId, dimensionMap, displayNodes, focusedNodeId, highlightedNodeIds, positions],
+    [activeDepthMap, activePreviewNodeId, displayNodes, focusedNodeId, highlightedNodeIds, hoveredNodeId, nodeSignalMap, normalizedFocusDepth, positions],
   );
 
-  const flowEdges = useMemo<Edge[]>(
+  const flowEdges = useMemo<RelationshipMapFlowEdge[]>(
     () =>
       visibleEdges.map((edge) => {
         const isHighlighted = activePreviewNodeId
@@ -667,29 +923,123 @@ export const RelationshipMapView = ({
           : hoveredNodeId
             ? edge.source === hoveredNodeId || edge.target === hoveredNodeId
             : false;
+        const recencyOpacity = scaleRecencyOpacity(edge.lastSeenAt, 0.16, 0.88);
+        const confidenceOpacity = scaleEdgeConfidence(edge.confidence, 1);
+        const strokeWidth = scaleEdgeStrength(edge.weight, edgeWeightBounds);
+        const sourceDepth = activeDepthMap.get(edge.source);
+        const targetDepth = activeDepthMap.get(edge.target);
+        const edgeDepth = sourceDepth == null || targetDepth == null ? null : Math.max(sourceDepth, targetDepth);
+        const allPathsForEdge = patternModel.pathsByEdgeId.get(edge.id) ?? [];
+        const activePathsForEdge = allPathsForEdge.filter((path) => activePatternPathIdSet.has(path.id));
+        const activeTopPathsForEdge = activePathsForEdge.filter((path) => patternModel.topPathIds.has(path.id));
+        const maxTopPathFrequency = activeTopPathsForEdge.reduce(
+          (currentMax, path) => Math.max(currentMax, path.frequency),
+          0,
+        );
+        const patternStrength = activeTopPathsForEdge.length > 0
+          ? normalizeWeight(
+              maxTopPathFrequency,
+              patternModel.topPathFrequencyBounds.min,
+              patternModel.topPathFrequencyBounds.max,
+              0.6,
+            )
+          : activePathsForEdge.length > 0
+            ? 0.36
+            : 0;
+        const ambientEdgeOpacity = recencyOpacity * confidenceOpacity;
+        const relationFactor = focusedNodeId
+          ? edgeDepth == null
+            ? 0.16
+            : 1 - edgeDepth / (normalizedFocusDepth + 1.8)
+          : activePreviewNodeId
+            ? isHighlighted
+              ? 1
+              : 0.26
+            : 1;
+        const patternFactor = hoveredPatternPaths.length > 0
+          ? activePathsForEdge.length > 0
+            ? activeTopPathsForEdge.length > 0
+              ? 1.08
+              : 0.84
+            : allPathsForEdge.length > 0
+              ? 0.18
+              : 0.12
+          : activeTopPathsForEdge.length > 0
+            ? 1.06
+            : allPathsForEdge.length > 0
+              ? 0.28
+              : 0.15;
+        const visibleOpacity = ambientEdgeOpacity * relationFactor * patternFactor;
+        const glowOpacity = activeTopPathsForEdge.length > 0
+          ? 0.18 + patternStrength * 0.16
+          : activePathsForEdge.length > 0
+            ? 0.08 + patternStrength * 0.08
+            : allPathsForEdge.length > 0
+              ? 0.03
+              : 0;
+        const depthWidthBoost = focusedNodeId && edgeDepth != null ? Math.max(0.05, 0.48 - edgeDepth * 0.12) : 0;
+        const patternWidthBoost = activeTopPathsForEdge.length > 0
+          ? 0.24 + patternStrength * 0.85
+          : activePathsForEdge.length > 0
+            ? 0.2
+            : 0;
+        const finalStrokeWidth =
+          strokeWidth + (isPrimaryEdge ? 0.55 : 0) + patternWidthBoost + depthWidthBoost;
+        const strokeColor =
+          isHighlighted || activePathsForEdge.length > 0
+            ? EDGE_STROKES.active
+            : allPathsForEdge.length > 0
+              ? EDGE_STROKES.default
+              : EDGE_STROKES.muted;
+        const markerColor =
+          isHighlighted || activePathsForEdge.length > 0 ? EDGE_STROKES.active : EDGE_STROKES.default;
 
         return {
           id: edge.id,
           source: edge.source,
           target: edge.target,
-          type: 'smoothstep',
-          animated: Boolean(focusedNodeId && isPrimaryEdge),
+          type: 'relationshipMapEdge',
+          animated: false,
           selectable: false,
-          style: {
-            stroke: isHighlighted ? EDGE_STROKES.active : EDGE_STROKES.muted,
-            strokeWidth: isPrimaryEdge ? 2.5 : isHighlighted ? 1.8 : 1,
-            opacity: activePreviewNodeId ? (isHighlighted ? 1 : 0.14) : 0.78,
+          data: {
+            strokeColor,
+            strokeWidth: finalStrokeWidth,
+            opacity: visibleOpacity,
             strokeDasharray: edge.relation === 'state-entity' || edge.relation === 'context-entity' ? '7 5' : undefined,
+            glowColor: EDGE_STROKES.glow,
+            glowWidth: finalStrokeWidth + (activeTopPathsForEdge.length > 0 ? 4.4 + patternStrength * 1.8 : activePathsForEdge.length > 0 ? 3 : 0),
+            glowOpacity,
+            isPulsing: activeTopPathsForEdge.length > 0,
+            pulseDuration: 4.6 - patternStrength * 1.4,
+            pulseOpacity: Math.min(glowOpacity + 0.08, 0.52),
+          } satisfies RelationshipMapFlowEdgeData,
+          style: {
+            opacity: visibleOpacity,
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 14,
             height: 14,
-            color: isHighlighted ? EDGE_STROKES.active : EDGE_STROKES.default,
+            color: markerColor,
           },
         };
       }),
-    [activePreviewNodeId, focusedNodeId, highlightedNodeIds, hoveredNodeId, visibleEdges],
+    [
+      activePatternPathIdSet,
+      activeDepthMap,
+      activePreviewNodeId,
+      edgeWeightBounds,
+      focusedNodeId,
+      highlightedNodeIds,
+      hoveredNodeId,
+      hoveredPatternPaths.length,
+      normalizedFocusDepth,
+      patternModel.pathsByEdgeId,
+      patternModel.topPathFrequencyBounds.max,
+      patternModel.topPathFrequencyBounds.min,
+      patternModel.topPathIds,
+      visibleEdges,
+    ],
   );
 
   const toggleActivities = () => startTransition(() => setFilters((current) => ({ ...current, activities: !current.activities })));
@@ -706,6 +1056,7 @@ export const RelationshipMapView = ({
   const clearMeaningFocus = () =>
     startTransition(() => {
       setHoveredNodeId(null);
+      setHoverPreviewNodeId(null);
       setFocusedNodeId(null);
       setActiveQuestionId(null);
     });
@@ -714,6 +1065,7 @@ export const RelationshipMapView = ({
     startTransition(() => {
       setFilters(createDefaultFilters());
       setHoveredNodeId(null);
+      setHoverPreviewNodeId(null);
       setFocusedNodeId(null);
       setActiveQuestionId(null);
     });
@@ -724,6 +1076,7 @@ export const RelationshipMapView = ({
         setActiveQuestionId(null);
         setFocusedNodeId(null);
         setHoveredNodeId(null);
+        setHoverPreviewNodeId(null);
         return;
       }
 
@@ -731,6 +1084,7 @@ export const RelationshipMapView = ({
       setActiveQuestionId(question.id);
       setFocusedNodeId(question.targetNodeId);
       setHoveredNodeId(null);
+      setHoverPreviewNodeId(null);
     });
 
   const sidebarBase = {
@@ -744,6 +1098,48 @@ export const RelationshipMapView = ({
     flexDirection: 'column' as const,
     gap: '14px',
   };
+
+  useEffect(() => {
+    const flowInstance = flowInstanceRef.current;
+
+    if (!flowInstance?.viewportInitialized) {
+      return;
+    }
+
+    if (focusedNodeId) {
+      const position = positions.get(focusedNodeId);
+      const nodeDimensions = dimensionMap.get(focusedNodeId);
+
+      if (!position || !nodeDimensions) {
+        return;
+      }
+
+      const nextZoom = Math.min(1.02, Math.max(flowInstance.getZoom(), 0.82));
+      lastViewportFocusRef.current = focusedNodeId;
+
+      void flowInstance.setCenter(position.x + nodeDimensions.width / 2, position.y + nodeDimensions.height / 2, {
+        zoom: nextZoom,
+        duration: 520,
+        ease: easeOutCubic,
+        interpolate: 'smooth',
+      });
+
+      return;
+    }
+
+    if (lastViewportFocusRef.current) {
+      lastViewportFocusRef.current = null;
+
+      void flowInstance.fitView({
+        nodes: flowNodes.map((node) => ({ id: node.id })),
+        padding: 0.18,
+        minZoom: 0.64,
+        duration: 520,
+        ease: easeOutCubic,
+        interpolate: 'smooth',
+      });
+    }
+  }, [dimensionMap, flowNodes, focusedNodeId, positions]);
 
   return (
     <div style={{ display: 'grid', gap: '14px' }}>
@@ -1017,11 +1413,23 @@ export const RelationshipMapView = ({
             </div>
           </div>
 
-          <div style={{ height: '820px', opacity: isPending ? 0.74 : 1, transition: 'opacity 0.25s' }}>
+          <div
+            style={{ height: '820px', opacity: isPending ? 0.74 : 1, transition: 'opacity 0.25s' }}
+            onMouseLeave={() => {
+              if (focusedNodeId) return;
+
+              setHoveredNodeId(null);
+              setHoverPreviewNodeId(null);
+            }}
+          >
             <ReactFlow
               nodes={flowNodes}
               edges={flowEdges}
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              onInit={(instance) => {
+                flowInstanceRef.current = instance;
+              }}
               fitView
               fitViewOptions={{ padding: 0.18, minZoom: 0.64 }}
               minZoom={0.48}
@@ -1035,21 +1443,41 @@ export const RelationshipMapView = ({
                 if (isCollapsedNodeId(node.id)) return;
                 startTransition(() => {
                   setActiveQuestionId(null);
+                  setHoverPreviewNodeId(null);
                   setFocusedNodeId((current) => (current === node.id ? null : node.id));
                   setHoveredNodeId(null);
                 });
               }}
               onNodeMouseEnter={(_, node) => {
-                if (focusedNodeId || isCollapsedNodeId(node.id)) return;
+                if (focusedNodeId) return;
+
                 setHoveredNodeId(node.id);
+
+                if (isCollapsedNodeId(node.id)) {
+                  return;
+                }
+
+                setHoverPreviewNodeId((current) => {
+                  if (!current) {
+                    return node.id;
+                  }
+
+                  if (current === node.id) {
+                    return current;
+                  }
+
+                  return hoverPreviewNodeIds.has(node.id) ? current : node.id;
+                });
               }}
               onNodeMouseLeave={(_, node) => {
-                if (focusedNodeId || isCollapsedNodeId(node.id)) return;
+                if (focusedNodeId) return;
+
                 setHoveredNodeId((current) => (current === node.id ? null : current));
               }}
               onPaneClick={() =>
                 startTransition(() => {
                   setHoveredNodeId(null);
+                  setHoverPreviewNodeId(null);
                   setFocusedNodeId(null);
                   setActiveQuestionId(null);
                 })

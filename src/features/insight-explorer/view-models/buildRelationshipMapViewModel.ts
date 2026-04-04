@@ -15,6 +15,7 @@ type MutableNode = {
   kind: RelationshipMapNodeKind;
   subtype: RelationshipMapNodeSubtype;
   frequency: number;
+  lastSeenAt: string;
   connectedNodeIds: Set<string>;
 };
 
@@ -24,6 +25,7 @@ type MutableEdge = {
   target: string;
   relation: RelationshipMapEdgeRelation;
   weight: number;
+  lastSeenAt: string;
 };
 
 const normalizeText = (value: string) =>
@@ -39,6 +41,8 @@ const activityNodeId = (activityId: string) => `activity:${activityId}`;
 const entityNodeId = (entityId: string) => `entity:${entityId}`;
 const stateNodeId = (group: string, label: string) => `state:${group.toLowerCase()}:${slugify(label)}`;
 const contextNodeId = (type: ContextGroup, label: string) => `context:${type.toLowerCase()}:${slugify(label)}`;
+const pickMostRecentTimestamp = (left: string, right: string) =>
+  new Date(left).getTime() >= new Date(right).getTime() ? left : right;
 
 const upsertNode = (
   store: Map<string, MutableNode>,
@@ -47,11 +51,13 @@ const upsertNode = (
   kind: RelationshipMapNodeKind,
   subtype: RelationshipMapNodeSubtype,
   frequency: number,
+  lastSeenAt: string,
 ) => {
   const current = store.get(id);
 
   if (current) {
     current.frequency += frequency;
+    current.lastSeenAt = pickMostRecentTimestamp(current.lastSeenAt, lastSeenAt);
     return current;
   }
 
@@ -61,6 +67,7 @@ const upsertNode = (
     kind,
     subtype,
     frequency,
+    lastSeenAt,
     connectedNodeIds: new Set<string>(),
   };
   store.set(id, next);
@@ -73,6 +80,7 @@ const upsertEdge = (
   target: string,
   relation: RelationshipMapEdgeRelation,
   weight: number,
+  lastSeenAt: string,
 ) => {
   const [from, to] = source.localeCompare(target) <= 0 ? [source, target] : [target, source];
   const id = `${relation}:${from}::${to}`;
@@ -80,6 +88,7 @@ const upsertEdge = (
 
   if (current) {
     current.weight += weight;
+    current.lastSeenAt = pickMostRecentTimestamp(current.lastSeenAt, lastSeenAt);
     return current;
   }
 
@@ -89,6 +98,7 @@ const upsertEdge = (
     target,
     relation,
     weight,
+    lastSeenAt,
   };
   store.set(id, next);
   return next;
@@ -101,13 +111,13 @@ export const buildRelationshipMapViewModel = (viewModel: InsightExplorerViewMode
 
   viewModel.activityGroups.forEach((activity) => {
     const currentActivityNodeId = activityNodeId(activity.id);
-    upsertNode(nodes, currentActivityNodeId, activity.title, 'activity', null, activity.frequency);
+    upsertNode(nodes, currentActivityNodeId, activity.title, 'activity', null, activity.frequency, activity.lastObservedAt);
 
     activity.entities.forEach((entity) => {
       const currentEntityNodeId = entityNodeId(entity.id);
       entityLookup.set(entity.id, currentEntityNodeId);
-      upsertNode(nodes, currentEntityNodeId, entity.label, 'entity', entity.type, entity.frequency);
-      upsertEdge(edges, currentActivityNodeId, currentEntityNodeId, 'activity-entity', entity.frequency);
+      upsertNode(nodes, currentEntityNodeId, entity.label, 'entity', entity.type, entity.frequency, entity.lastSeenAt);
+      upsertEdge(edges, currentActivityNodeId, currentEntityNodeId, 'activity-entity', entity.frequency, entity.lastSeenAt);
     });
   });
 
@@ -117,13 +127,13 @@ export const buildRelationshipMapViewModel = (viewModel: InsightExplorerViewMode
     (['CONFIDENCE', 'UNCERTAINTY'] as const).forEach((group) => {
       activity.cognitiveStates[group].forEach((state) => {
         const currentStateNodeId = stateNodeId(group, state.label);
-        upsertNode(nodes, currentStateNodeId, state.label, 'state', group, state.frequency);
-        upsertEdge(edges, currentActivityNodeId, currentStateNodeId, 'activity-state', state.frequency);
+        upsertNode(nodes, currentStateNodeId, state.label, 'state', group, state.frequency, state.lastSeenAt);
+        upsertEdge(edges, currentActivityNodeId, currentStateNodeId, 'activity-state', state.frequency, state.lastSeenAt);
 
         state.relatedEntityIds.forEach((relatedEntityId) => {
           const currentEntityNodeId = entityLookup.get(relatedEntityId);
           if (!currentEntityNodeId) return;
-          upsertEdge(edges, currentStateNodeId, currentEntityNodeId, 'state-entity', state.frequency);
+          upsertEdge(edges, currentStateNodeId, currentEntityNodeId, 'state-entity', state.frequency, state.lastSeenAt);
         });
       });
     });
@@ -131,13 +141,13 @@ export const buildRelationshipMapViewModel = (viewModel: InsightExplorerViewMode
     (['LIKE', 'DISLIKE', 'CONSTRAINT'] as const).forEach((group) => {
       activity.context[group].forEach((context) => {
         const currentContextNodeId = contextNodeId(group, context.label);
-        upsertNode(nodes, currentContextNodeId, context.label, 'context', group, context.frequency);
-        upsertEdge(edges, currentActivityNodeId, currentContextNodeId, 'activity-context', context.frequency);
+        upsertNode(nodes, currentContextNodeId, context.label, 'context', group, context.frequency, context.lastSeenAt);
+        upsertEdge(edges, currentActivityNodeId, currentContextNodeId, 'activity-context', context.frequency, context.lastSeenAt);
 
         context.relatedEntityIds.forEach((relatedEntityId) => {
           const currentEntityNodeId = entityLookup.get(relatedEntityId);
           if (!currentEntityNodeId) return;
-          upsertEdge(edges, currentContextNodeId, currentEntityNodeId, 'context-entity', context.frequency);
+          upsertEdge(edges, currentContextNodeId, currentEntityNodeId, 'context-entity', context.frequency, context.lastSeenAt);
         });
       });
     });
@@ -155,6 +165,7 @@ export const buildRelationshipMapViewModel = (viewModel: InsightExplorerViewMode
       kind: node.kind,
       subtype: node.subtype,
       frequency: node.frequency,
+      lastSeenAt: node.lastSeenAt,
       importance: node.frequency + node.connectedNodeIds.size * 0.65,
       connectedNodeIds: Array.from(node.connectedNodeIds).sort((left, right) => left.localeCompare(right)),
     }))
@@ -172,6 +183,7 @@ export const buildRelationshipMapViewModel = (viewModel: InsightExplorerViewMode
       target: edge.target,
       relation: edge.relation,
       weight: edge.weight,
+      lastSeenAt: edge.lastSeenAt,
     }))
     .sort((left, right) => right.weight - left.weight || left.id.localeCompare(right.id));
 
