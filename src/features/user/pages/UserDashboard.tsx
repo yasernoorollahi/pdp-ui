@@ -3,6 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { UserChatPage } from '../../../features/chat/pages/UserChatPage';
 import { InsightsNewPage } from '../../insights-new/pages/InsightsNewPage';
 import { InsightExplorerPage } from '../../insight-explorer/pages/InsightExplorerPage';
+import { UserEntitiesPage } from '../../user-entities/pages/UserEntitiesPage';
+import { UserIntentsPage } from '../../user-intents/pages/UserIntentsPage';
+import { UserActivitiesPage } from '../../user-activities/pages/UserActivitiesPage';
+import { CognitiveLanguagePage } from '../../cognitive-language/pages/CognitiveLanguagePage';
+import { UserContextPage } from '../../user-context/pages/UserContextPage';
 import styles from './UserDashboard.module.css';
 
 const navItems = [
@@ -77,6 +82,104 @@ const navItems = [
         <path d="M12 3c-4.97 0-9 3.58-9 8s4.03 8 9 8 9-3.58 9-8-4.03-8-9-8z" />
         <path d="M9 10.5c.5-1.4 1.7-2.5 3-2.5 1.7 0 3 1.34 3 3 0 2-1.8 2.48-2.76 3.13-.57.39-.9.82-.96 1.37" />
         <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    label: 'User Entities',
+    path: '/app/entities',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <circle cx="7" cy="12" r="2.5" />
+        <circle cx="17" cy="7" r="2.5" />
+        <circle cx="17" cy="17" r="2.5" />
+        <path d="M9.2 10.8l5.2-2.6" />
+        <path d="M9.2 13.2l5.2 2.6" />
+      </svg>
+    ),
+  },
+  {
+    label: 'User Intents',
+    path: '/app/intents',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <path d="M4 12h12" />
+        <path d="M12 6l8 6-8 6" />
+        <circle cx="6" cy="12" r="2" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    label: 'User Activities',
+    path: '/app/activities',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <path d="M4 18c2.4-7.2 4.6-10.8 6.6-10.8 2.6 0 2.8 9.6 5.4 9.6 1.1 0 2.1-1 4-4.8" />
+        <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none" />
+        <circle cx="20" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Cognitive Language',
+    path: '/app/cognitive-language',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <path d="M4 6h16" />
+        <path d="M4 12h10" />
+        <path d="M4 18h16" />
+        <circle cx="18" cy="12" r="2.5" />
+      </svg>
+    ),
+  },
+  {
+    label: 'User Context',
+    path: '/app/context',
+    badge: null,
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        width="18"
+        height="18"
+      >
+        <rect x="4" y="5" width="16" height="14" rx="3" />
+        <path d="M8 9h8" />
+        <path d="M8 13h5" />
       </svg>
     ),
   },
@@ -326,6 +429,11 @@ export const UserDashboard = () => {
   const isChatRoute = location.pathname === '/app/chat';
   const isInsightsRoute = location.pathname === '/app/insights';
   const isCognitiveSpaceRoute = location.pathname === '/app/cognitive-space';
+  const isEntitiesRoute = location.pathname === '/app/entities';
+  const isIntentsRoute = location.pathname === '/app/intents';
+  const isActivitiesRoute = location.pathname === '/app/activities';
+  const isCognitiveLanguageRoute = location.pathname === '/app/cognitive-language';
+  const isContextRoute = location.pathname === '/app/context';
 
   const initials = getInitials(user?.email ?? '');
 
@@ -392,7 +500,23 @@ export const UserDashboard = () => {
         <header className={styles.topbar}>
           <div className={styles.topbarLeft}>
             <h1 className={styles.pageTitle}>
-              {isChatRoute ? 'Chat' : isInsightsRoute ? 'Insights' : isCognitiveSpaceRoute ? 'Cognitive Space' : 'Overview'}
+              {isChatRoute
+                ? 'Chat'
+                : isInsightsRoute
+                  ? 'Insights'
+                  : isCognitiveSpaceRoute
+                    ? 'Cognitive Space'
+                    : isEntitiesRoute
+                      ? 'User Entities'
+                      : isIntentsRoute
+                        ? 'User Intents'
+                        : isActivitiesRoute
+                          ? 'User Activities'
+                          : isCognitiveLanguageRoute
+                            ? 'Cognitive Language'
+                            : isContextRoute
+                              ? 'User Context'
+                      : 'Overview'}
             </h1>
             <span className={styles.pageBreadcrumb}>
               {isChatRoute
@@ -401,6 +525,16 @@ export const UserDashboard = () => {
                   ? 'Dashboard · Insights'
                   : isCognitiveSpaceRoute
                     ? 'Dashboard · Cognitive Space'
+                    : isEntitiesRoute
+                      ? 'Dashboard · User Entities'
+                      : isIntentsRoute
+                        ? 'Dashboard · User Intents'
+                        : isActivitiesRoute
+                          ? 'Dashboard · User Activities'
+                          : isCognitiveLanguageRoute
+                            ? 'Dashboard · Cognitive Language'
+                            : isContextRoute
+                              ? 'Dashboard · User Context'
                     : 'Dashboard · Personal Data Platform'}
             </span>
           </div>
@@ -460,8 +594,13 @@ export const UserDashboard = () => {
           {isChatRoute ? <UserChatPage /> : null}
           {isInsightsRoute ? <InsightsNewPage /> : null}
           {isCognitiveSpaceRoute ? <InsightExplorerPage /> : null}
+          {isEntitiesRoute ? <UserEntitiesPage /> : null}
+          {isIntentsRoute ? <UserIntentsPage /> : null}
+          {isActivitiesRoute ? <UserActivitiesPage /> : null}
+          {isCognitiveLanguageRoute ? <CognitiveLanguagePage /> : null}
+          {isContextRoute ? <UserContextPage /> : null}
 
-          {!isChatRoute && !isInsightsRoute && !isCognitiveSpaceRoute ? (
+          {!isChatRoute && !isInsightsRoute && !isCognitiveSpaceRoute && !isEntitiesRoute && !isIntentsRoute && !isActivitiesRoute && !isCognitiveLanguageRoute && !isContextRoute ? (
             <>
               {/* Welcome banner */}
               <div className={styles.welcomeBanner}>

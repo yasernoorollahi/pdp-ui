@@ -58,18 +58,18 @@ const asEnum = <T extends string>(value: unknown, allowed: readonly T[], fallbac
 
 const normalizeActivity = (record: Record<string, unknown>, index: number): UserActivityRecord => ({
   id: asString(pick(record, ['id', 'activity_id', 'activityId'])) ?? `activity-${index + 1}`,
-  label: asString(pick(record, ['label', 'activity', 'name', 'title'])) ?? `Activity ${index + 1}`,
+  label: asString(pick(record, ['label', 'activity', 'activity_name', 'activityName', 'name', 'title'])) ?? `Activity ${index + 1}`,
   occurred_at:
-    asString(pick(record, ['occurred_at', 'occurredAt', 'timestamp', 'created_at', 'createdAt'])) ??
+    asString(pick(record, ['occurred_at', 'occurredAt', 'activity_date', 'activityDate', 'timestamp', 'created_at', 'createdAt'])) ??
     new Date().toISOString(),
   group_hint: asString(pick(record, ['group_hint', 'groupHint', 'group_key', 'groupKey'])),
   tags: asStringArray(pick(record, ['tags', 'labels'])),
 });
 
 const normalizeCognitiveState = (record: Record<string, unknown>, index: number): UserCognitiveStateRecord => ({
-  id: asString(pick(record, ['id', 'state_id', 'stateId'])) ?? `cognitive-${index + 1}`,
+  id: asString(pick(record, ['id', 'state_id', 'stateId', 'signal_id', 'signalId'])) ?? `cognitive-${index + 1}`,
   activity_id: asString(pick(record, ['activity_id', 'activityId'])) ?? '',
-  group: asEnum<CognitiveGroup>(pick(record, ['group', 'bucket', 'polarity']), ['CONFIDENCE', 'UNCERTAINTY'], 'CONFIDENCE'),
+  group: asEnum<CognitiveGroup>(pick(record, ['group', 'bucket', 'polarity', 'language_type', 'languageType']), ['CONFIDENCE', 'UNCERTAINTY'], 'CONFIDENCE'),
   phrase: asString(pick(record, ['phrase', 'label', 'value', 'state'])) ?? 'Unlabeled state',
   related_entity_ids: asStringArray(pick(record, ['related_entity_ids', 'relatedEntityIds', 'entity_ids', 'entityIds'])),
 });
@@ -77,7 +77,7 @@ const normalizeCognitiveState = (record: Record<string, unknown>, index: number)
 const normalizeContext = (record: Record<string, unknown>, index: number): UserContextRecord => ({
   id: asString(pick(record, ['id', 'context_id', 'contextId'])) ?? `context-${index + 1}`,
   activity_id: asString(pick(record, ['activity_id', 'activityId'])) ?? '',
-  type: asEnum<ContextGroup>(pick(record, ['type', 'context_type', 'contextType']), ['LIKE', 'DISLIKE', 'CONSTRAINT'], 'LIKE'),
+  type: asEnum<ContextGroup>(pick(record, ['type', 'context_type', 'contextType', 'preference_type', 'preferenceType']), ['LIKE', 'DISLIKE', 'CONSTRAINT'], 'LIKE'),
   phrase: asString(pick(record, ['phrase', 'label', 'value', 'context'])) ?? 'Unlabeled context',
   related_entity_ids: asStringArray(pick(record, ['related_entity_ids', 'relatedEntityIds', 'entity_ids', 'entityIds'])),
 });
@@ -85,9 +85,9 @@ const normalizeContext = (record: Record<string, unknown>, index: number): UserC
 const normalizeEntity = (record: Record<string, unknown>, index: number): UserEntityRecord => ({
   id: asString(pick(record, ['id', 'entity_id', 'entityId'])) ?? `entity-${index + 1}`,
   activity_id: asString(pick(record, ['activity_id', 'activityId'])) ?? '',
-  entity_type: asEnum<Extract<EntityType, 'PERSON' | 'LOCATION'>>(
+  entity_type: asEnum<EntityType>(
     pick(record, ['entity_type', 'entityType', 'type']),
-    ['PERSON', 'LOCATION'],
+    ['PERSON', 'LOCATION', 'TOOL', 'PROJECT'],
     'PERSON',
   ),
   label: asString(pick(record, ['label', 'name', 'value'])) ?? 'Unknown entity',
@@ -99,6 +99,9 @@ const normalizeIntent = (record: Record<string, unknown>, index: number): UserIn
   activity_id: asString(pick(record, ['activity_id', 'activityId'])) ?? '',
   label: asString(pick(record, ['label', 'name', 'value'])) ?? 'Intent',
   tag: asString(pick(record, ['tag', 'category'])) ?? 'general',
+  intent_type: asString(pick(record, ['intent_type', 'intentType', 'type'])) ?? asString(pick(record, ['tag', 'category'])),
+  description: asString(pick(record, ['description', 'summary', 'phrase', 'text'])) ?? asString(pick(record, ['label', 'name', 'value'])),
+  temporal_scope: asString(pick(record, ['temporal_scope', 'temporalScope', 'timeframe', 'scope'])),
 });
 
 const normalizeProject = (record: Record<string, unknown>, index: number): UserProjectRecord => ({

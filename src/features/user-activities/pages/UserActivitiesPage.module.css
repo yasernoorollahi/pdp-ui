@@ -1,0 +1,413 @@
+.page {
+  position: relative;
+  display: grid;
+  gap: 24px;
+  color: #eef6ff;
+}
+
+.page::before,
+.page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page::before {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.07), transparent 18%),
+    radial-gradient(circle at 78% 18%, rgba(52, 211, 153, 0.12), transparent 24%),
+    radial-gradient(circle at 50% 90%, rgba(251, 191, 36, 0.09), transparent 26%);
+}
+
+.page::after {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1px, transparent 0),
+    radial-gradient(circle at 1px 1px, rgba(191, 219, 254, 0.06) 1px, transparent 0);
+  background-size: 66px 66px, 104px 104px;
+  background-position: 0 0, 18px 24px;
+  opacity: 0.52;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  gap: 22px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
+  padding: 30px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.02) 100%),
+    radial-gradient(circle at 10% 18%, rgba(34, 197, 94, 0.22), transparent 28%),
+    radial-gradient(circle at 82% 18%, rgba(125, 211, 252, 0.18), transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(251, 191, 36, 0.14), transparent 36%),
+    linear-gradient(180deg, rgba(24, 34, 60, 0.58), rgba(10, 15, 27, 0.42));
+  backdrop-filter: blur(30px) saturate(155%);
+  -webkit-backdrop-filter: blur(30px) saturate(155%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 60px rgba(2, 6, 23, 0.26);
+}
+
+.heroGlow {
+  position: absolute;
+  inset: auto -120px -120px auto;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.18), transparent 68%);
+  pointer-events: none;
+}
+
+.heroCopy,
+.heroStats,
+.chartCard,
+.patternCard,
+.dayCard,
+.emptyState {
+  position: relative;
+  z-index: 1;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 12px;
+}
+
+.kicker,
+.sectionKicker {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #a7f3d0;
+}
+
+.hero h2,
+.sectionHeader h3 {
+  margin: 0;
+  color: #f8fbff;
+}
+
+.hero h2 {
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  line-height: 1.05;
+}
+
+.heroText {
+  margin: 0;
+  max-width: 64ch;
+  color: rgba(226, 232, 240, 0.78);
+  line-height: 1.72;
+}
+
+.heroStats {
+  display: grid;
+  gap: 12px;
+}
+
+.statCard,
+.chartCard,
+.patternCard,
+.dayCard,
+.emptyState {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.045)),
+    rgba(30, 41, 59, 0.22);
+  backdrop-filter: blur(24px) saturate(155%);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 40px rgba(2, 6, 23, 0.18);
+}
+
+.statCard {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.statCard span {
+  font-size: 0.78rem;
+  color: rgba(191, 219, 254, 0.72);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.statCard strong {
+  font-size: 1.6rem;
+  color: #fff;
+}
+
+.banner {
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    rgba(250, 204, 21, 0.08);
+  color: #fde68a;
+  backdrop-filter: blur(18px);
+}
+
+.topGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+}
+
+.chartCard,
+.patternCard,
+.streamSection {
+  display: grid;
+  gap: 18px;
+}
+
+.chartCard,
+.patternCard {
+  padding: 22px;
+  border-radius: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  gap: 16px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.inlineMeta,
+.dayMeta {
+  color: rgba(191, 219, 254, 0.7);
+}
+
+.chartWrap {
+  height: 320px;
+}
+
+.tooltip {
+  display: grid;
+  gap: 6px;
+}
+
+.patternStack {
+  display: grid;
+  gap: 14px;
+}
+
+.patternRow {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.patternLabelWrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.patternDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.patternLabel,
+.patternValue,
+.dayLabel,
+.nodeLabel {
+  color: #fff;
+}
+
+.patternMeter {
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(148, 163, 184, 0.14);
+}
+
+.patternFill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.streamSection {
+  gap: 18px;
+}
+
+.dayColumns {
+  display: grid;
+  gap: 16px;
+}
+
+.dayCard {
+  padding: 20px;
+  border-radius: 24px;
+}
+
+.dayHeader {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dayLabel {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.dayMeta {
+  margin: 6px 0 0;
+}
+
+.dayBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(30, 41, 59, 0.14);
+}
+
+.activityStream {
+  display: grid;
+  gap: 14px;
+}
+
+.activityNode {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.nodeMarker {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  margin-top: 6px;
+  box-shadow: 0 0 18px currentColor;
+}
+
+.activityNode:not(:last-child) .nodeMarker::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 2px;
+  height: calc(100% + 18px);
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.28), rgba(148, 163, 184, 0.08));
+}
+
+.nodeBody {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(30, 41, 59, 0.16);
+}
+
+.nodeTopline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nodeTime,
+.nodeGroup {
+  font-size: 0.82rem;
+  color: rgba(191, 219, 254, 0.76);
+}
+
+.nodeLabel {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.emptyState {
+  display: grid;
+  gap: 10px;
+  padding: 30px 26px;
+  border-radius: 24px;
+}
+
+.emptyState h2,
+.emptyState p {
+  margin: 0;
+}
+
+.loadingLineLong,
+.loadingLineShort {
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(226, 232, 240, 0.22), rgba(148, 163, 184, 0.12));
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.loadingLineLong {
+  width: min(100%, 560px);
+  height: 52px;
+}
+
+.loadingLineShort {
+  width: min(100%, 380px);
+  height: 18px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .chartCard,
+  .patternCard,
+  .dayCard,
+  .emptyState {
+    padding: 20px;
+  }
+
+  .sectionHeader,
+  .dayHeader,
+  .nodeTopline,
+  .patternRow {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .patternRow {
+    display: grid;
+  }
+}
