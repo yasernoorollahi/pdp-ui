@@ -1,0 +1,336 @@
+.page {
+  position: relative;
+  display: grid;
+  gap: 24px;
+  color: #eef6ff;
+}
+
+.page::before,
+.page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page::before {
+  background:
+    radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.07), transparent 18%),
+    radial-gradient(circle at 82% 14%, rgba(244, 114, 182, 0.12), transparent 24%),
+    radial-gradient(circle at 52% 88%, rgba(167, 139, 250, 0.1), transparent 26%);
+}
+
+.page::after {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1px, transparent 0),
+    radial-gradient(circle at 1px 1px, rgba(191, 219, 254, 0.06) 1px, transparent 0);
+  background-size: 66px 66px, 104px 104px;
+  background-position: 0 0, 20px 28px;
+  opacity: 0.55;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  gap: 22px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  padding: 30px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.02) 100%),
+    radial-gradient(circle at 8% 18%, rgba(125, 211, 252, 0.22), transparent 30%),
+    radial-gradient(circle at 84% 22%, rgba(244, 114, 182, 0.18), transparent 32%),
+    radial-gradient(circle at 52% 100%, rgba(167, 139, 250, 0.16), transparent 36%),
+    linear-gradient(180deg, rgba(24, 34, 60, 0.58), rgba(10, 15, 27, 0.42));
+  backdrop-filter: blur(30px) saturate(155%);
+  -webkit-backdrop-filter: blur(30px) saturate(155%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 60px rgba(2, 6, 23, 0.26);
+}
+
+.heroGlow {
+  position: absolute;
+  inset: auto -120px -120px auto;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.18), transparent 68%);
+  pointer-events: none;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+}
+
+.kicker,
+.chartKicker {
+  margin: 0;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: #a5f3fc;
+}
+
+.hero h2,
+.sectionHeader h3,
+.chartHeader h3 {
+  margin: 0;
+  color: #f8fbff;
+}
+
+.hero h2 {
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  line-height: 1.05;
+}
+
+.heroText {
+  margin: 0;
+  max-width: 64ch;
+  line-height: 1.72;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.heroStats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+}
+
+.statCard,
+.chartCard,
+.laneCard,
+.emptyState {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.045)),
+    rgba(30, 41, 59, 0.22);
+  backdrop-filter: blur(24px) saturate(155%);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 40px rgba(2, 6, 23, 0.18);
+}
+
+.statCard {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.statCard span {
+  font-size: 0.78rem;
+  color: rgba(191, 219, 254, 0.72);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.statCard strong {
+  font-size: 1.6rem;
+  color: #fff;
+}
+
+.banner {
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    rgba(250, 204, 21, 0.08);
+  color: #fde68a;
+  backdrop-filter: blur(18px);
+}
+
+.chartGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.chartCard {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 24px;
+  min-height: 420px;
+}
+
+.chartHeader,
+.sectionHeader,
+.laneHeader {
+  display: flex;
+  gap: 16px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.inlineMeta,
+.laneMeta {
+  color: rgba(191, 219, 254, 0.7);
+}
+
+.donutChart {
+  width: 100%;
+  min-height: 320px;
+}
+
+.barChartWrap {
+  height: 320px;
+}
+
+.tooltip {
+  display: grid;
+  gap: 6px;
+}
+
+.intentField {
+  display: grid;
+  gap: 18px;
+}
+
+.lanes {
+  display: grid;
+  gap: 16px;
+}
+
+.laneCard {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  padding: 20px 20px 18px 22px;
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.laneRail {
+  position: absolute;
+  inset: 16px auto 16px 0;
+  width: 4px;
+  border-radius: 999px;
+  box-shadow: 0 0 24px currentColor;
+}
+
+.laneType {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.scopeWrap,
+.activityStrip,
+.descriptionStream {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scopePill,
+.activityPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(30, 41, 59, 0.14);
+  color: #dbeafe;
+}
+
+.descriptionNode {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 220px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #eff6ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.descriptionNode span {
+  line-height: 1.5;
+}
+
+.descriptionNode strong {
+  font-size: 0.82rem;
+  color: #fff;
+}
+
+.emptyState {
+  display: grid;
+  gap: 10px;
+  padding: 30px 26px;
+  border-radius: 24px;
+}
+
+.emptyState h2,
+.emptyState p {
+  margin: 0;
+}
+
+.loadingLineLong,
+.loadingLineShort {
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(226, 232, 240, 0.22), rgba(148, 163, 184, 0.12));
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.loadingLineLong {
+  width: min(100%, 560px);
+  height: 52px;
+}
+
+.loadingLineShort {
+  width: min(100%, 380px);
+  height: 18px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .chartGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .chartCard,
+  .laneCard,
+  .emptyState {
+    padding: 20px;
+  }
+
+  .chartHeader,
+  .sectionHeader,
+  .laneHeader {
+    flex-direction: column;
+  }
+
+  .descriptionNode {
+    min-width: 100%;
+  }
+}

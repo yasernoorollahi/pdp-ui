@@ -27,6 +27,11 @@ export default function AppRouter() {
             <Route path="/app/chat" element={<UserDashboard />} />
             <Route path="/app/insights" element={<UserDashboard />} />
             <Route path="/app/cognitive-space" element={<UserDashboard />} />
+            <Route path="/app/entities" element={<UserDashboard />} />
+            <Route path="/app/intents" element={<UserDashboard />} />
+            <Route path="/app/activities" element={<UserDashboard />} />
+            <Route path="/app/cognitive-language" element={<UserDashboard />} />
+            <Route path="/app/context" element={<UserDashboard />} />
           </Route>
         </Route>
 

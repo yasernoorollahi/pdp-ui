@@ -33,7 +33,7 @@ export type UserContextRecord = {
 export type UserEntityRecord = {
   id: string;
   activity_id: string;
-  entity_type: Extract<EntityType, 'PERSON' | 'LOCATION'>;
+  entity_type: EntityType;
   label: string;
   canonical_id?: string | null;
 };
@@ -43,6 +43,9 @@ export type UserIntentRecord = {
   activity_id: string;
   label: string;
   tag: string;
+  intent_type?: string | null;
+  description?: string | null;
+  temporal_scope?: string | null;
 };
 
 export type UserProjectRecord = {
